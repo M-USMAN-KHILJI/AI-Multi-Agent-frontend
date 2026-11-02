@@ -1,22 +1,19 @@
 import React from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { colors, height, radius, fontSize } from '../Const/display'
-import { Badge } from './Badge'
 import { useChatStore } from '../store/chatStore'
 import {
   FiCpu,
   FiPlus,
   FiSettings,
   FiLayers,
-  FiHome,
-  FiMessageSquare,
 } from 'react-icons/fi'
 
 /**
  * Top Navbar Component
+ * Houses the Telemetry, Supervisor Status, LangGraph/LangChain badges, and New Chat button
  */
 export const Navbar = ({ onToggleSidebar }) => {
-  const location = useLocation()
   const navigate = useNavigate()
   const { createNewChat } = useChatStore()
 
@@ -29,13 +26,13 @@ export const Navbar = ({ onToggleSidebar }) => {
     <header
       style={{
         height: height.navbar,
-        backgroundColor: colors.bgDark,
+        background: 'rgba(11, 15, 25, 0.75)',
         borderBottom: `1px solid ${colors.borderGlass}`,
       }}
-      className="sticky top-0 z-40 w-full px-6 flex items-center justify-between backdrop-blur-md"
+      className="sticky top-0 z-40 w-full px-4 sm:px-6 flex items-center justify-between backdrop-blur-xl"
     >
-      {/* Left: Mobile Toggle & Page Context */}
-      <div className="flex items-center gap-4">
+      {/* Left: Mobile Toggle & Brand / Supervisor Status */}
+      <div className="flex items-center gap-3 sm:gap-4">
         <button
           type="button"
           onClick={onToggleSidebar}
@@ -55,7 +52,7 @@ export const Navbar = ({ onToggleSidebar }) => {
               background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
               borderRadius: radius.md,
             }}
-            className="w-10 h-10 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/25"
+            className="w-9 h-9 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/25 shrink-0"
           >
             <FiCpu className="w-5 h-5" />
           </div>
@@ -82,58 +79,44 @@ export const Navbar = ({ onToggleSidebar }) => {
         </Link>
       </div>
 
-      {/* Center: Quick Breadcrumb / Navigation */}
-      <nav className="hidden md:flex items-center gap-2">
-        <Link
-          to="/"
-          style={{
-            borderRadius: radius.md,
-            backgroundColor: location.pathname === '/' ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
-            color: location.pathname === '/' ? colors.textPrimary : colors.textMuted,
-            border: `1px solid ${location.pathname === '/' ? colors.borderGlassHover : 'transparent'}`,
-            fontSize: fontSize.bodySm,
-          }}
-          className="flex items-center gap-2 px-3.5 py-1.5 font-medium transition-all hover:text-white hover:bg-white/5"
-        >
-          <FiHome className="w-4 h-4 text-indigo-400" />
-          <span>Dashboard</span>
-        </Link>
+      {/* Center: System Telemetry Bar (Supervisor Online | 4 Agents) */}
+      <div className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-slate-900/60 border border-white/5 backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+            Supervisor Online
+          </span>
+        </div>
+        <span className="text-gray-700">|</span>
+        <span className="text-xs text-gray-300">
+          Orchestrating <strong className="text-indigo-300">4 Specialized Agents</strong>
+        </span>
+      </div>
 
-        {location.pathname.startsWith('/chat') && (
-          <div
-            style={{
-              borderRadius: radius.md,
-              backgroundColor: 'rgba(99, 102, 241, 0.1)',
-              color: colors.primaryLight,
-              border: '1px solid rgba(99, 102, 241, 0.25)',
-              fontSize: fontSize.bodySm,
-            }}
-            className="flex items-center gap-2 px-3.5 py-1.5 font-medium"
-          >
-            <FiMessageSquare className="w-4 h-4 text-indigo-400" />
-            <span>Active Conversation</span>
-          </div>
-        )}
-      </nav>
+      {/* Right: LangGraph/LangChain telemetry + New Chat Button + Settings */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="hidden xl:flex items-center gap-2 text-xs text-gray-400 font-mono">
+          <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/5 text-[11px]">
+            LangGraph: <span className="text-emerald-400">Active</span>
+          </span>
+          <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/5 text-[11px]">
+            LangChain: <span className="text-indigo-300">v1.4</span>
+          </span>
+        </div>
 
-      {/* Right: Supervisor Status & Actions */}
-      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={handleNewChat}
           style={{
-            backgroundColor: colors.primary,
+            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
             borderRadius: radius.md,
+            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
           }}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white hover:brightness-110 active:scale-95 transition-all cursor-pointer"
         >
           <FiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span>New Chat</span>
+          <span>Open New Chat</span>
         </button>
-
-        <Badge variant="supervisor" size="sm" className="hidden sm:inline-flex">
-          Supervisor Ready
-        </Badge>
 
         <Link
           to="/settings"
@@ -143,7 +126,7 @@ export const Navbar = ({ onToggleSidebar }) => {
             borderRadius: radius.md,
             color: colors.textSecondary,
           }}
-          className="p-2.5 hover:text-white hover:border-indigo-500/40 transition-colors"
+          className="p-2 hover:text-white hover:border-indigo-500/40 transition-colors"
           title="Settings & API Configuration"
         >
           <FiSettings className="w-4 h-4" />

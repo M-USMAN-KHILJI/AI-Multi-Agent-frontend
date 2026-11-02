@@ -257,42 +257,11 @@ export const HomePage = () => {
   ]
 
   return (
-    <div className="home-container p-4 sm:p-8 max-w-7xl mx-auto flex flex-col gap-10">
-      {/* Background Ambient Glows */}
+    <div className="home-container p-4 sm:p-8 lg:p-10 w-full flex flex-col gap-10">
+      {/* Background Ambient Glows & Gradients */}
       <div className="ambient-glow-1" />
       <div className="ambient-glow-2" />
-
-      {/* Top System Health & Agent Telemetry Bar */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 p-3.5 rounded-xl bg-slate-900/60 border border-white/5 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-semibold text-emerald-300 uppercase tracking-wider">
-              Supervisor Online
-            </span>
-          </div>
-          <span className="text-gray-700">|</span>
-          <span className="text-xs text-gray-400">
-            Orchestrating <strong>4 Specialized Agents</strong>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 text-xs text-gray-400">
-          <button
-            type="button"
-            onClick={() => {
-              const newChat = createNewChat()
-              navigate(`/chat/${newChat.id}`)
-            }}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 hover:text-white hover:bg-indigo-600/50 transition-colors cursor-pointer"
-          >
-            <FiPlus className="w-3.5 h-3.5" />
-            <span>Open New Chat</span>
-          </button>
-          <span className="px-2.5 py-1 rounded-md bg-white/5 font-mono">LangGraph: Active</span>
-          <span className="px-2.5 py-1 rounded-md bg-white/5 font-mono">LangChain: v1.4</span>
-        </div>
-      </div>
+      <div className="ambient-glow-3" />
 
       {/* Hero Title & Overview Section */}
       <div className="relative z-10 text-center max-w-4xl mx-auto flex flex-col items-center">
@@ -323,7 +292,7 @@ export const HomePage = () => {
       </div>
 
       {/* Central Universal Dispatch Hub */}
-      <div className="relative z-10 max-w-4xl mx-auto w-full">
+      <div className="relative z-10 max-w-5xl mx-auto w-full">
         <form
           onSubmit={handleDispatch}
           className="dispatch-bar rounded-2xl p-4 flex flex-col gap-4 shadow-2xl"
