@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   colors,
   fontSize,
@@ -13,6 +14,8 @@ import {
   Card,
   FileUpload,
 } from '../../customComp'
+import { useChatStore } from '../../store/chatStore'
+import { useSpeechRecognition } from '../../utils/useSpeechRecognition'
 import '../../Style/Home.css'
 import {
   FiCpu,
@@ -33,6 +36,7 @@ import {
   FiFilm,
   FiStar,
   FiRefreshCw,
+  FiPlus,
 } from 'react-icons/fi'
 
 /**
@@ -40,13 +44,20 @@ import {
  * Designed according to Project Specification
  */
 export const HomePage = () => {
+  const navigate = useNavigate()
+  const { createNewChat, addMessage } = useChatStore()
+
   const [prompt, setPrompt] = useState('')
   const [selectedModality, setSelectedModality] = useState('auto') // 'auto' | 'text' | 'audio' | 'image' | 'video'
   const [selectedFile, setSelectedFile] = useState(null)
   const [showUploader, setShowUploader] = useState(false)
   const [activeTabModality, setActiveTabModality] = useState('all')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [executionResult, setExecutionResult] = useState(null)
+
+  // Speech-to-Text Recognition Hook
+  const { isListening, toggleListening } = useSpeechRecognition({
+    onTranscriptChange: (text) => setPrompt(text),
+  })
 
   // Quick prompt suggestions with predefined routing
   const quickPrompts = [
@@ -87,13 +98,31 @@ export const HomePage = () => {
       if (selectedFile.type.startsWith('video/')) return 'video'
     }
     const lower = prompt.toLowerCase()
-    if (lower.includes('transcribe') || lower.includes('speech') || lower.includes('audio') || lower.includes('voice') || lower.includes('tts')) {
+    if (
+      lower.includes('transcribe') ||
+      lower.includes('speech') ||
+      lower.includes('audio') ||
+      lower.includes('voice') ||
+      lower.includes('tts')
+    ) {
       return 'audio'
     }
-    if (lower.includes('draw') || lower.includes('image') || lower.includes('photo') || lower.includes('picture') || lower.includes('visual')) {
+    if (
+      lower.includes('draw') ||
+      lower.includes('image') ||
+      lower.includes('photo') ||
+      lower.includes('picture') ||
+      lower.includes('visual')
+    ) {
       return 'image'
     }
-    if (lower.includes('video') || lower.includes('movie') || lower.includes('frame') || lower.includes('opencv') || lower.includes('footage')) {
+    if (
+      lower.includes('video') ||
+      lower.includes('movie') ||
+      lower.includes('frame') ||
+      lower.includes('opencv') ||
+      lower.includes('footage')
+    ) {
       return 'video'
     }
     return prompt.trim().length > 0 ? 'text' : 'supervisor'
@@ -104,35 +133,6 @@ export const HomePage = () => {
   const handleQuickPrompt = (item) => {
     setPrompt(item.text)
     setSelectedModality(item.modality)
-  }
-
-  const handleDispatch = (e) => {
-    e.preventDefault()
-    if (!prompt.trim() && !selectedFile) return
-
-    setIsProcessing(true)
-    const targetAgent = predictedAgent === 'supervisor' ? 'text' : predictedAgent
-
-    // Simulated multi-agent execution response
-    setTimeout(() => {
-      setIsProcessing(false)
-      const agentNames = {
-        text: 'Text AI Agent (LangChain LLM)',
-        audio: 'Audio AI Agent (Faster-Whisper / Edge-TTS)',
-        image: 'Image AI Agent (Vision Multimodal / Diffusers)',
-        video: 'Video AI Agent (OpenCV Frame Extraction / Video Gen)',
-      }
-
-      setExecutionResult({
-        timestamp: new Date().toLocaleTimeString(),
-        agent: agentNames[targetAgent] || 'Supervisor Agent',
-        agentType: targetAgent,
-        requestSummary: prompt || (selectedFile ? `File: ${selectedFile.name}` : 'Empty request'),
-        fileAttached: selectedFile ? `${selectedFile.name} (${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)` : null,
-        routingReason: `Supervisor analyzed user prompt & modality attachments. Routed automatically via LangGraph conditional edges to ${agentNames[targetAgent]}.`,
-        responseBody: getSimulatedResponse(targetAgent, prompt),
-      })
-    }, 900)
   }
 
   const getSimulatedResponse = (agentType, query) => {
@@ -154,13 +154,66 @@ export const HomePage = () => {
 • Scene Transition Analysis: 2 primary shot cuts detected with high camera pan velocity.`
       case 'text':
       default:
-        return `[Text Pipeline Executed via LangChain]
-The LangGraph Supervisor Agent dynamically evaluates user intents and maps each request to specialized execution nodes:
-1. Supervisor Agent receives input and updates the shared workflow state.
-2. Conditional routing edges inspect input modality (Text, Audio, Image, Video).
-3. Specialized Agent executes tools, models, or synthesis.
-4. Output state is aggregated and streamed to the frontend.`
+        return `The **Supervisor Multi-Agent architecture** processes requests through shared state graph nodes:
+1. **Supervisor Agent** receives input and evaluates modality requirements.
+2. **Conditional routing** edges inspect input modality (Text, Audio, Image, Video).
+3. **Specialized Agent** executes tools, models, or synthesis.
+4. **State Persistence**: The conversation history and metadata persist across sessions.`
     }
+  }
+
+  const handleDispatch = (e) => {
+    e.preventDefault()
+    if (!prompt.trim() && !selectedFile) return
+
+    setIsProcessing(true)
+    const targetAgent = predictedAgent === 'supervisor' ? 'text' : predictedAgent
+
+    const agentNames = {
+      text: 'Text AI Agent (LangChain LLM)',
+      audio: 'Audio AI Agent (Faster-Whisper / Edge-TTS)',
+      image: 'Image AI Agent (Vision Multimodal / Diffusers)',
+      video: 'Video AI Agent (OpenCV Frame Extraction / Video Gen)',
+    }
+
+    // 1. Create a brand new chat in the store
+    const newChat = createNewChat(prompt, selectedFile)
+
+    // 2. Add the agent's response to that chat
+    addMessage(newChat.id, {
+      id: `msg_${Date.now()}_a`,
+      sender: 'assistant',
+      text: getSimulatedResponse(targetAgent, prompt),
+      agentType: targetAgent,
+      agentName: agentNames[targetAgent] || 'Supervisor Agent',
+      routingReason: `Supervisor analyzed user prompt & modality attachments. Routed automatically via LangGraph conditional edges to ${agentNames[targetAgent]}.`,
+      timestamp: 'Just now',
+    })
+
+    // 3. Immediately open that conversation page!
+    setIsProcessing(false)
+    navigate(`/chat/${newChat.id}`)
+  }
+
+  const handleLaunchAgentChat = (agent) => {
+    const defaultPrompts = {
+      text: 'How can the LangChain Text Agent help me today?',
+      audio: 'I want to transcribe or synthesize audio with the Audio Agent.',
+      image: 'I want to analyze or generate an image with the Vision Agent.',
+      video: 'I want to extract video keyframes or generate a video.',
+    }
+    const starter = defaultPrompts[agent.id] || `Start a conversation with ${agent.title}`
+    const newChat = createNewChat(starter)
+    addMessage(newChat.id, {
+      id: `msg_${Date.now()}_a`,
+      sender: 'assistant',
+      text: `Hello! I am the **${agent.title}**. ${agent.desc}\n\nHow can I help you today? You can type a message or attach relevant files.`,
+      agentType: agent.id,
+      agentName: agent.title,
+      routingReason: `User selected ${agent.title}. Routing initialized directly via LangGraph node.`,
+      timestamp: 'Just now',
+    })
+    navigate(`/chat/${newChat.id}`)
   }
 
   // Modality Agent definitions for UI cards
@@ -225,9 +278,19 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
         </div>
 
         <div className="flex items-center gap-3 text-xs text-gray-400">
+          <button
+            type="button"
+            onClick={() => {
+              const newChat = createNewChat()
+              navigate(`/chat/${newChat.id}`)
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 hover:text-white hover:bg-indigo-600/50 transition-colors cursor-pointer"
+          >
+            <FiPlus className="w-3.5 h-3.5" />
+            <span>Open New Chat</span>
+          </button>
           <span className="px-2.5 py-1 rounded-md bg-white/5 font-mono">LangGraph: Active</span>
           <span className="px-2.5 py-1 rounded-md bg-white/5 font-mono">LangChain: v1.4</span>
-          <span className="px-2.5 py-1 rounded-md bg-white/5 font-mono">FastAPI Backend</span>
         </div>
       </div>
 
@@ -255,7 +318,7 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
         >
           A single intelligent command hub for <strong>Text</strong>, <strong>Audio</strong>,{' '}
           <strong>Images</strong>, and <strong>Videos</strong>. The LangGraph Supervisor
-          evaluates your request and coordinates the specialized agent to execute it.
+          evaluates your request, opens a chat session, and routes to specialized agents.
         </p>
       </div>
 
@@ -288,7 +351,7 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
                       borderRadius: radius.full,
                       borderColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
                     }}
-                    className="px-3 py-1 text-xs font-semibold border transition-all hover:text-white"
+                    className="px-3 py-1 text-xs font-semibold border transition-all hover:text-white cursor-pointer"
                   >
                     <span style={{ color: tab.color }}>●</span> {tab.label}
                   </button>
@@ -305,6 +368,14 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
             </div>
           </div>
 
+          {/* Listening Live Indicator */}
+          {isListening && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-pink-950/40 border border-pink-500/30 text-xs text-pink-300 animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-pink-500 animate-ping shrink-0" />
+              <span className="font-medium">Listening to your speech... Speak now and text will convert into the prompt</span>
+            </div>
+          )}
+
           {/* Prompt Input Row */}
           <div className="flex items-center gap-3">
             <FiZap className="w-5 h-5 text-indigo-400 shrink-0" />
@@ -312,9 +383,29 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
               type="text"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Ask a question, request audio synthesis, upload images for vision Q&A, or analyze video..."
+              placeholder={isListening ? 'Listening... Speak into your microphone' : 'Ask a question, upload audio to transcribe, upload photos for visual Q&A, or analyze video...'}
               className="w-full bg-transparent text-white placeholder-gray-500 outline-none text-base font-normal leading-relaxed"
             />
+
+            {/* Microphone Voice-to-Text Button */}
+            <button
+              type="button"
+              onClick={() => toggleListening(prompt)}
+              style={{
+                backgroundColor: isListening
+                  ? colors.audioAgent
+                  : 'rgba(255, 255, 255, 0.08)',
+                color: isListening ? '#ffffff' : colors.textSecondary,
+                borderRadius: radius.md,
+                boxShadow: isListening ? '0 0 16px rgba(236, 72, 153, 0.6)' : 'none',
+              }}
+              className={`p-2.5 transition-all shrink-0 cursor-pointer ${
+                isListening ? 'animate-pulse scale-105' : 'hover:text-white'
+              }`}
+              title={isListening ? 'Listening... Click to stop' : 'Click to speak (Speech-to-Text)'}
+            >
+              <FiMic className="w-4 h-4" />
+            </button>
 
             {/* File Upload Trigger */}
             <button
@@ -328,7 +419,7 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
                 color: showUploader ? '#fff' : colors.textSecondary,
                 borderRadius: radius.md,
               }}
-              className="p-2.5 transition-colors hover:text-white shrink-0"
+              className="p-2.5 transition-colors hover:text-white shrink-0 cursor-pointer"
               title="Attach Audio, Image, or Video file"
             >
               <FiPaperclip className="w-4 h-4" />
@@ -345,7 +436,7 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
               disabled={!prompt.trim() && !selectedFile}
               className="shrink-0"
             >
-              Dispatch
+              Start Chat
             </Button>
           </div>
 
@@ -360,7 +451,7 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
                       key={m}
                       type="button"
                       onClick={() => setActiveTabModality(m)}
-                      className={`uppercase text-[10px] font-bold px-2 py-0.5 rounded ${
+                      className={`uppercase text-[10px] font-bold px-2 py-0.5 rounded cursor-pointer ${
                         activeTabModality === m ? 'bg-indigo-600 text-white' : 'bg-white/5 text-gray-400'
                       }`}
                     >
@@ -387,7 +478,7 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
                 key={idx}
                 type="button"
                 onClick={() => handleQuickPrompt(item)}
-                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors truncate text-left shrink-0 max-w-[220px]"
+                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors truncate text-left shrink-0 max-w-[220px] cursor-pointer"
               >
                 {item.label}
               </button>
@@ -395,49 +486,6 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
           </div>
         </form>
       </div>
-
-      {/* Live Agent Execution Output Sandbox (Displays output when dispatched) */}
-      {executionResult && (
-        <div className="relative z-10 max-w-4xl mx-auto w-full animate-fadeIn">
-          <Card
-            header={
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <FiActivity className="w-4 h-4 text-emerald-400" />
-                  <span className="font-bold text-white text-sm">
-                    Execution Trace • {executionResult.agent}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 font-mono">{executionResult.timestamp}</span>
-                  <Badge variant={executionResult.agentType} size="sm">
-                    Completed
-                  </Badge>
-                </div>
-              </div>
-            }
-          >
-            <div className="flex flex-col gap-3 text-left">
-              <div className="p-3 rounded-lg bg-slate-900/60 border border-white/5 text-xs text-gray-400 flex flex-col gap-1">
-                <div>
-                  <strong className="text-gray-300">Routing Decision:</strong>{' '}
-                  {executionResult.routingReason}
-                </div>
-                {executionResult.fileAttached && (
-                  <div>
-                    <strong className="text-gray-300">File Ingested:</strong>{' '}
-                    {executionResult.fileAttached}
-                  </div>
-                )}
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-950 border border-white/10 font-mono text-xs text-gray-200 whitespace-pre-wrap leading-relaxed">
-                {executionResult.responseBody}
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
 
       {/* Modality Agents Grid (Text, Audio, Image, Video) */}
       <div className="relative z-10 flex flex-col gap-6">
@@ -519,14 +567,10 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
                   </div>
                 </div>
 
-                {/* Quick Action Button */}
+                {/* Quick Action Button - Opens New Chat with Agent */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedModality(agent.id)
-                    setPrompt(`Activate ${agent.title}: `)
-                    window.scrollTo({ top: 180, behavior: 'smooth' })
-                  }}
+                  onClick={() => handleLaunchAgentChat(agent)}
                   style={{
                     color: agent.theme.color,
                     borderColor: agent.theme.border,
@@ -536,7 +580,7 @@ The LangGraph Supervisor Agent dynamically evaluates user intents and maps each 
                   }}
                   className="w-full py-2.5 font-semibold border flex items-center justify-center gap-1.5 hover:brightness-125 transition-all cursor-pointer"
                 >
-                  <span>Select Agent</span>
+                  <span>Chat with {agent.title.split(' ')[0]}</span>
                   <FiArrowRight className="w-4 h-4" />
                 </button>
               </div>

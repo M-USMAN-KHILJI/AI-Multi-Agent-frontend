@@ -1,15 +1,15 @@
 import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { colors, height, radius, fontSize } from '../Const/display'
 import { Badge } from './Badge'
+import { useChatStore } from '../store/chatStore'
 import {
   FiCpu,
-  FiMessageSquare,
-  FiMic,
-  FiImage,
-  FiVideo,
+  FiPlus,
   FiSettings,
   FiLayers,
+  FiHome,
+  FiMessageSquare,
 } from 'react-icons/fi'
 
 /**
@@ -17,13 +17,13 @@ import {
  */
 export const Navbar = ({ onToggleSidebar }) => {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { createNewChat } = useChatStore()
 
-  const navLinks = [
-    { path: '/text', label: 'Text AI', icon: FiMessageSquare, color: colors.textAgent },
-    { path: '/audio', label: 'Audio AI', icon: FiMic, color: colors.audioAgent },
-    { path: '/image', label: 'Image AI', icon: FiImage, color: colors.imageAgent },
-    { path: '/video', label: 'Video AI', icon: FiVideo, color: colors.videoAgent },
-  ]
+  const handleNewChat = () => {
+    const newChat = createNewChat()
+    navigate(`/chat/${newChat.id}`)
+  }
 
   return (
     <header
@@ -44,7 +44,7 @@ export const Navbar = ({ onToggleSidebar }) => {
             borderColor: colors.borderGlass,
             borderRadius: radius.md,
           }}
-          className="lg:hidden p-2 text-gray-300 hover:text-white border"
+          className="lg:hidden p-2 text-gray-300 hover:text-white border cursor-pointer"
         >
           <FiLayers className="w-5 h-5" />
         </button>
@@ -82,33 +82,55 @@ export const Navbar = ({ onToggleSidebar }) => {
         </Link>
       </div>
 
-      {/* Center: Quick Modality Switcher (Hidden on mobile) */}
+      {/* Center: Quick Breadcrumb / Navigation */}
       <nav className="hidden md:flex items-center gap-2">
-        {navLinks.map((item) => {
-          const isActive = location.pathname === item.path
-          const Icon = item.icon
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              style={{
-                borderRadius: radius.md,
-                backgroundColor: isActive ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
-                color: isActive ? colors.textPrimary : colors.textMuted,
-                border: `1px solid ${isActive ? colors.borderGlassHover : 'transparent'}`,
-                fontSize: fontSize.bodySm,
-              }}
-              className="flex items-center gap-2 px-3.5 py-1.5 font-medium transition-all hover:text-white hover:bg-white/5"
-            >
-              <Icon style={{ color: item.color }} className="w-4 h-4" />
-              <span>{item.label}</span>
-            </Link>
-          )
-        })}
+        <Link
+          to="/"
+          style={{
+            borderRadius: radius.md,
+            backgroundColor: location.pathname === '/' ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
+            color: location.pathname === '/' ? colors.textPrimary : colors.textMuted,
+            border: `1px solid ${location.pathname === '/' ? colors.borderGlassHover : 'transparent'}`,
+            fontSize: fontSize.bodySm,
+          }}
+          className="flex items-center gap-2 px-3.5 py-1.5 font-medium transition-all hover:text-white hover:bg-white/5"
+        >
+          <FiHome className="w-4 h-4 text-indigo-400" />
+          <span>Dashboard</span>
+        </Link>
+
+        {location.pathname.startsWith('/chat') && (
+          <div
+            style={{
+              borderRadius: radius.md,
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              color: colors.primaryLight,
+              border: '1px solid rgba(99, 102, 241, 0.25)',
+              fontSize: fontSize.bodySm,
+            }}
+            className="flex items-center gap-2 px-3.5 py-1.5 font-medium"
+          >
+            <FiMessageSquare className="w-4 h-4 text-indigo-400" />
+            <span>Active Conversation</span>
+          </div>
+        )}
       </nav>
 
-      {/* Right: Supervisor Status & Settings */}
+      {/* Right: Supervisor Status & Actions */}
       <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleNewChat}
+          style={{
+            backgroundColor: colors.primary,
+            borderRadius: radius.md,
+          }}
+          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+        >
+          <FiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
+          <span>New Chat</span>
+        </button>
+
         <Badge variant="supervisor" size="sm" className="hidden sm:inline-flex">
           Supervisor Ready
         </Badge>
