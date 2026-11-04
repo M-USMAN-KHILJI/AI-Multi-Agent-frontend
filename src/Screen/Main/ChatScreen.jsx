@@ -26,7 +26,7 @@ import {
   FiCornerDownLeft,
 } from 'react-icons/fi'
 import { useSpeechRecognition } from '../../utils/useSpeechRecognition'
-import { sendTextMessage, generateImage } from '../../Api/Api'
+import { sendTextMessage, generateImage, analyzeImage, editImage, generateVideo, synthesizeSpeech } from '../../Api/Api'
 
 /**
  * ChatScreen - Multimodal Conversation View
@@ -43,6 +43,52 @@ export const ChatScreen = () => {
   const [showUploader, setShowUploader] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [copiedId, setCopiedId] = useState(null)
+  const [speakingMsgId, setSpeakingMsgId] = useState(null)
+  const currentAudioRef = useRef(null)
+
+  const handleSpeakMessage = async (id, text) => {
+    // If currently playing this message, pause and reset
+    if (speakingMsgId === id) {
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause()
+        currentAudioRef.current = null
+      }
+      setSpeakingMsgId(null)
+      return
+    }
+
+    // Stop any previously playing audio
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current = null
+    }
+
+    setSpeakingMsgId(id)
+
+    try {
+      const data = await synthesizeSpeech(text)
+      console.log('Synthesized audio ready:', data.full_audio_url)
+      const audio = new Audio(data.full_audio_url)
+      audio.volume = 1.0
+      currentAudioRef.current = audio
+
+      audio.onended = () => {
+        setSpeakingMsgId(null)
+        currentAudioRef.current = null
+      }
+      audio.onerror = (e) => {
+        console.error('Audio playback error:', e)
+        setSpeakingMsgId(null)
+        currentAudioRef.current = null
+      }
+
+      await audio.play()
+    } catch (err) {
+      console.error('Speech synthesis error:', err)
+      setSpeakingMsgId(null)
+      currentAudioRef.current = null
+    }
+  }
 
   // Speech-to-Text Recognition Hook
   const { isListening, toggleListening } = useSpeechRecognition({
@@ -171,45 +217,59 @@ export const ChatScreen = () => {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         })
       } else if (targetModality === 'image') {
-        // Image AI Agent (NVIDIA FLUX 3 Image Klein)
-        const promptForGen = userPrompt || 'A futuristic AI neural network visualization glowing blue'
-        const imgData = await generateImage(promptForGen)
+        if (attachedFile && attachedFile.type.startsWith('image/')) {
+          // IMAGE UPLOADED: Analyze with NVIDIA Vision (Google PaliGemma)
+          const analyzePrompt = userPrompt || 'Describe what is in this image in detail.'
+          const analysisData = await analyzeImage(attachedFile, analyzePrompt)
+
+          addMessage(targetChatId, {
+            id: `msg_${Date.now()}_a`,
+            sender: 'assistant',
+            text: `**Image Analysis Complete:**\n\n${analysisData.analysis}`,
+            agentType: 'image',
+            agentName: 'Vision AI Agent (Google PaliGemma)',
+            routingReason: 'Supervisor detected uploaded image → routed to NVIDIA Vision for multimodal analysis',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          })
+        } else {
+          // NO FILE: Generate new image with NVIDIA FLUX 3 Image Klein
+          const promptForGen = userPrompt || 'A futuristic AI neural network visualization glowing blue'
+          const imgData = await generateImage(promptForGen)
+
+          addMessage(targetChatId, {
+            id: `msg_${Date.now()}_a`,
+            sender: 'assistant',
+            text: `**Image Generated Successfully:**\n\n• **Model:** NVIDIA FLUX 3 Image Klein\n• **Prompt:** "${promptForGen}"\n• **Resolution:** 1024x1024 • File: \`${imgData.filename}\``,
+            imageUrl: imgData.full_image_url,
+            agentType: 'image',
+            agentName: 'Image AI Agent (NVIDIA FLUX 3)',
+            routingReason: 'Supervisor routed image generation task to NVIDIA FLUX 3 Image Klein via LangGraph',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          })
+        }
+      } else if (targetModality === 'video') {
+        // Video AI Agent (Hugging Face Drishya-Tiny)
+        const promptForVid = userPrompt || 'Ocean waves crashing on a sandy beach at sunset'
+        const vidData = await generateVideo(promptForVid)
 
         addMessage(targetChatId, {
           id: `msg_${Date.now()}_a`,
           sender: 'assistant',
-          text: `**Image Generated Successfully:**\n\n• **Model:** NVIDIA FLUX 3 Image Klein\n• **Prompt:** "${promptForGen}"\n• **Resolution:** 1024x1024 • File: \`${imgData.filename}\``,
-          imageUrl: imgData.full_image_url,
-          agentType: 'image',
-          agentName: 'Image AI Agent (NVIDIA FLUX 3)',
-          routingReason: 'Supervisor routed image generation task to NVIDIA FLUX 3 Image Klein via LangGraph',
+          text: `**Video Generated Successfully:**\n\n• **Model:** Lightricks/LTX-Video-0.9.1\n• **Prompt:** "${promptForVid}"\n• **Duration:** 2.0s • File: \`${vidData.filename}\``,
+          videoUrl: vidData.full_video_url,
+          agentType: 'video',
+          agentName: 'Video AI Agent (LTX-Video)',
+          routingReason: 'Supervisor routed video request to Hugging Face Drishya-Tiny via LangGraph',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         })
       } else {
-        // Other modalities (audio, video) placeholder pipelines for upcoming steps
+        // Other modalities (audio) placeholder pipeline for upcoming step
         let botResponse = ''
-        let agentName = ''
-        let routingReason = ''
-
-        switch (targetModality) {
-          case 'audio':
-            agentName = 'Audio AI Agent (Whisper STT / Edge-TTS)'
-            routingReason =
-              'Supervisor detected audio keywords/files. Invoked speech recognition & audio pipeline.'
-            botResponse = attachedFile
-              ? `**Audio Ingestion & Transcription Complete:**\n\n• **File:** \`${attachedFile.name}\`\n• **Model:** Faster-Whisper (Large-v3)\n• **Transcript:** "The multimodal multi-agent system orchestrates distributed tasks seamlessly with LangGraph conditional execution."\n• **Action:** Text-to-speech preview synthesized with Edge-TTS JennyNeural.`
-              : `**Audio Agent Response:**\n\nI can transcribe speech files or synthesize spoken responses using Edge-TTS. If you have an audio clip (MP3, WAV, M4A), upload it using the attachment button.`
-            break
-
-          case 'video':
-            agentName = 'Video AI Agent (OpenCV & VideoGen)'
-            routingReason =
-              'Supervisor routed request to OpenCV frame extraction & video summarization pipeline.'
-            botResponse = attachedFile
-              ? `**Video Processing Summary:**\n\n• **Source Video:** \`${attachedFile.name}\`\n• **Keyframes Extracted:** 12 frames sampled via OpenCV.\n• **Audio Track:** Separated for speech transcription.\n• **Scene Assessment:** Continuous smooth pans, high fidelity dynamic transitions.`
-              : `**Video Agent Ready:**\n\nUpload a video file for automated keyframe extraction and summarization, or request a generated video prompt.`
-            break
-        }
+        let agentName = 'Audio AI Agent (Whisper STT / Edge-TTS)'
+        let routingReason = 'Supervisor detected audio keywords/files. Invoked speech recognition & audio pipeline.'
+        botResponse = attachedFile
+          ? `**Audio Ingestion & Transcription Complete:**\n\n• **File:** \`${attachedFile.name}\`\n• **Model:** Faster-Whisper (Large-v3)\n• **Transcript:** "The multimodal multi-agent system orchestrates distributed tasks seamlessly with LangGraph conditional execution."\n• **Action:** Text-to-speech preview synthesized with Edge-TTS JennyNeural.`
+          : `**Audio Agent Response:**\n\nI can transcribe speech files or synthesize spoken responses using Edge-TTS. If you have an audio clip (MP3, WAV, M4A), upload it using the attachment button.`
 
         addMessage(targetChatId, {
           id: `msg_${Date.now()}_a`,
@@ -386,6 +446,31 @@ export const ChatScreen = () => {
                       </div>
                     )}
 
+                    {/* AI Generated Video Display */}
+                    {msg.videoUrl && (
+                      <div className="mt-3 overflow-hidden rounded-xl border border-white/10 shadow-lg bg-black">
+                        <video
+                          src={msg.videoUrl}
+                          controls
+                          autoPlay
+                          loop
+                          playsInline
+                          className="w-full max-h-72 object-contain rounded-t-xl"
+                        />
+                        <div className="p-2.5 flex items-center justify-between text-xs bg-black/60">
+                          <span className="text-amber-400 font-mono text-[11px]">LTX-Video (704x512)</span>
+                          <a
+                            href={msg.videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-amber-400 hover:text-amber-300 font-medium text-[11px]"
+                          >
+                            Open Video ↗
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Supervisor Routing Reason Pill */}
                     {msg.routingReason && (
                       <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center gap-1.5 text-[11px] text-gray-400 font-mono">
@@ -394,25 +479,58 @@ export const ChatScreen = () => {
                       </div>
                     )}
 
-                    {/* Copy Action Button */}
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(msg.id, msg.text)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3 p-1.5 rounded-md hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer"
-                      title="Copy response"
-                    >
-                      {copiedId === msg.id ? (
-                        <FiCheck className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <FiCopy className="w-3.5 h-3.5" />
+                    {/* Action Buttons (Copy & TTS Mic) */}
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3 flex items-center gap-1">
+                      {!isUser && (
+                        <button
+                          type="button"
+                          onClick={() => handleSpeakMessage(msg.id, msg.text)}
+                          className={`p-1.5 rounded-md hover:bg-white/10 transition-colors cursor-pointer ${
+                            speakingMsgId === msg.id
+                              ? 'text-rose-400 bg-rose-500/10'
+                              : 'text-gray-400 hover:text-white'
+                          }`}
+                          title={speakingMsgId === msg.id ? 'Speaking response...' : 'Listen to AI reply (TTS)'}
+                        >
+                          <FiVolume2 className={`w-3.5 h-3.5 ${speakingMsgId === msg.id ? 'animate-pulse text-rose-400' : ''}`} />
+                        </button>
                       )}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(msg.id, msg.text)}
+                        className="p-1.5 rounded-md hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer"
+                        title="Copy response"
+                      >
+                        {copiedId === msg.id ? (
+                          <FiCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <FiCopy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Timestamp */}
-                  <span className="text-[10px] text-gray-500 px-1 font-mono">
-                    {msg.timestamp || 'Just now'}
-                  </span>
+                  {/* Message Footer: Timestamp & Microphone Speak Button */}
+                  <div className="flex items-center gap-2 px-1">
+                    <span className="text-[10px] text-gray-500 font-mono">
+                      {msg.timestamp || 'Just now'}
+                    </span>
+                    {!isUser && (
+                      <button
+                        type="button"
+                        onClick={() => handleSpeakMessage(msg.id, msg.text)}
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer ${
+                          speakingMsgId === msg.id
+                            ? 'text-rose-400 bg-rose-500/10 border border-rose-500/30 animate-pulse'
+                            : 'text-gray-400 hover:text-indigo-300 hover:bg-white/5'
+                        }`}
+                        title="Click to speak AI reply (TTS)"
+                      >
+                        <FiVolume2 className={`w-3.5 h-3.5 ${speakingMsgId === msg.id ? 'text-rose-400 animate-pulse' : 'text-gray-400'}`} />
+                        <span>{speakingMsgId === msg.id ? 'Speaking...' : 'Listen'}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )

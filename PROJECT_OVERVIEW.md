@@ -1,4 +1,4 @@
-# Multimodal Multi-Agent AI Platform
+# Multimodal Multi-Agent AI Platform — Project Overview
 
 A production-grade, enterprise-ready full-stack application that coordinates **4 specialized AI modalities (Text, Audio, Image, and Video)** under a centralized **Supervisor Agent** orchestrator powered by **LangGraph** and **LangChain**, backed by **FastAPI** (Python) and a cutting-edge **React 19 + Tailwind CSS** frontend.
 
@@ -6,55 +6,54 @@ A production-grade, enterprise-ready full-stack application that coordinates **4
 
 ## 1. What Are We Building?
 
-We are building a unified intelligent multi-agent platform where a user can enter queries or upload assets across multiple formats (text, voice audio, pictures, or videos). Instead of interacting with isolated tools, the **Supervisor Agent** automatically analyzes user intent, decides the optimal domain agent, and coordinates stateful workflows:
+A unified intelligent multi-agent platform where a user can enter queries or upload assets across multiple formats (text, voice audio, pictures, or videos). The **Supervisor Agent** automatically analyzes user intent, decides the optimal domain agent, and coordinates stateful workflows:
 
 1. **Supervisor Agent (Orchestrator)**: Evaluates user prompts and attached file types, executing conditional routing logic across the LangGraph workflow.
-2. **Text AI Agent (LangChain Core)**: Handles NLP reasoning, contextual question answering, prompt engineering, and conversational streaming.
-3. **Audio AI Agent (Whisper STT & Edge-TTS)**: Transcribes speech from uploaded audio files in real time and synthesizes natural audio output.
-4. **Image AI Agent (Vision & Diffusers)**: Conducts visual question answering, image inspection, feature detection, and text-to-image generation.
-5. **Video AI Agent (OpenCV & VideoGen)**: Ingests video payloads, samples keyframes using OpenCV, extracts audio tracks, and generates structured summarizations.
+2. **Text AI Agent (Groq Cloud LPU)**: Handles fast reasoning and conversational streaming using `openai/gpt-oss-120b`.
+3. **Image AI Agent (Google PaliGemma & NVIDIA FLUX 3 Klein)**:
+   - Visual Understanding: Google PaliGemma VLM for fast visual inspection.
+   - Image Synthesis: NVIDIA FLUX 3 Klein for photorealistic 1024×1024 generation.
+   - Image Editing: Multi-step pipeline describing input images and synthesizing user-instructed edits.
+4. **Video AI Agent (Lightricks LTX-Video-0.9.1)**:
+   - Diffusion Transformer (DiT) text-to-video generating 704×512 cinematic clips in ~5.7s.
+   - Video upload and OpenCV keyframe extraction.
+5. **Audio AI Agent (NVIDIA Resemble.AI Chatterbox TTS & Speech-to-Text)**:
+   - High-fidelity natural speech synthesis packaged into 22.05 kHz RIFF/WAVE containers.
+   - MD5 audio content caching for 0ms instant replay on repeated clicks.
+   - Web Speech API microphone dictation hook for hands-free speech input.
 
 ---
 
-## 2. What Have We Built So Far?
+## 2. Implemented Architecture & Completed Milestones
 
-### 🎨 Design System & Styling Architecture
-- **Centralized Design Tokens (`src/Const/display.js`)**: All project colors, gradients, font scales, border radii, heights, widths, shadows, and agent modality themes are centralized and imported everywhere.
-- **Deep Slate & Radiant Linear Gradient Palette**: Configured a modern dark-mode aesthetic with ambient indigo, violet, and emerald glows across all pages.
-- **Tailwind CSS v4 Integration**: Lightning-fast compilation through the `@tailwindcss/vite` plugin.
+### 🎨 Frontend Architecture (`AI-Multi-Agent-frontend/`)
+- **Centralized Design Tokens (`src/Const/display.js`)**: Single source of truth for colors, agent modality themes, shadows, and radii.
+- **`Sidebar.jsx`**: Collapsible/expandable navigation sidebar with chat history and new chat trigger.
+- **`Navbar.jsx`**: Glassmorphic header with live Supervisor status indicators.
+- **`ChatScreen.jsx`**:
+   - Omnichannel chat with automatic supervisor routing based on user prompt and file attachment type.
+   - Interactive speaker icon (`<FiVolume2 /> Listen`) under every AI reply to trigger NVIDIA Chatterbox TTS.
+   - Inline image and video players with direct download capabilities.
+- **Dedicated Studios**:
+   - `ImageScreen.jsx`: 3 tabs (Generate, Analyze with PaliGemma, Edit Image with Vision + FLUX 3).
+   - `VideoScreen.jsx`: 2 tabs (Text-to-Video with LTX-Video, OpenCV Video Sampling).
 
-### 🧩 Reusable Atomic Components (`src/customComp/`)
-- **`Sidebar.jsx`**: Collapsible/expandable navigation sidebar with smooth cubic-bezier transitions, "+ New Chat" creator, historical conversation drawer with live deletion, and Supervisor telemetry.
-- **`Navbar.jsx`**: Glassmorphic header containing brand telemetry, dynamic breadcrumbs, live Supervisor status indicator, LangGraph/LangChain runtime badges, and new conversation shortcuts.
-- **`Button.jsx`**: High-performance button supporting 9 themed agent variants, icon slots, and active loading spinners.
-- **`Badge.jsx`**: Agent modality indicator tags with pulsing status dots.
-- **`Input.jsx` & `Textarea.jsx`**: Accessible inputs with prefix icon slots and automated resize behavior.
-- **`FileUpload.jsx`**: Drag-and-drop file upload zone configured for audio, image, and video MIME types.
-- **`Card.jsx`**: Glassmorphic backdrop cards with slots for header, body, and footer actions.
-- **`Footer.jsx`**: Telemetry and framework credit bar pinned strictly to the end of scrollable pages.
-
-### 🖥️ Master Screens (`src/Screen/Main/`)
-- **`homepage.jsx` (Home Command Center)**:
-  - 100% full-width immersive layout.
-  - Omnichannel Dispatch Bar with real-time Speech-to-Text microphone recording, modality selector tabs, and file drag-and-drop.
-  - Interactive Specialized Modality Cards (Text, Audio, Image, Video) with single-click agent chat launch.
-  - LangGraph Supervisor workflow node visualizer.
-- **`ChatScreen.jsx` (Omnimodal Conversation Hub)**:
-  - Full-screen conversational UI with distraction-free layout (Navbar and Footer removed).
-  - Centered half-width elevated glassmorphic text input field.
-  - Real-time Speech-to-Text conversion via the Web Speech API directly next to the Send button.
-  - Supervisor Decision Insight cards rendering the routing logic and agent justifications.
-  - Starter prompt cards spanning 100% width on fresh chats.
-- **Modality Specific Screens**:
-  - `TextScreen.jsx`, `AudioScreen.jsx`, `ImageScreen.jsx`, and `VideoScreen.jsx` scaffolded for dedicated agent studios.
-
-### 💾 State Management & Real-Time Utilities
-- **`chatStore.js` (Zustand + LocalStorage Persistence)**: Manages chat histories, active conversation pointers, dynamic message logs, agent routing tags, and timestamps.
-- **`useSpeechRecognition.js`**: Custom React hook wrapping the Web Speech API for real-time microphone dictation on both Home and Chat screens.
-
-### ⚙️ Backend Foundation (`backend/`)
-- Dedicated Python 3.12 virtual environment created.
-- `requirements.txt` locked with all 121 enterprise dependencies including FastAPI, LangChain, LangGraph, Faster-Whisper, Edge-TTS, Diffusers, Transformers, OpenCV, Celery, Redis, and SQLAlchemy.
+### ⚙️ Backend Architecture (`AI-Multi-Agent-Backend/`)
+- **LangGraph Workflows (`app/workflows/`)**:
+   - Stateful graphs routing between understanding and generation nodes with error-recovery edges.
+- **Service Layer (`app/services/`)**:
+   - `llm_service.py`: Groq Cloud client.
+   - `image_service.py`: PaliGemma VLM & FLUX 3 diffusion client.
+   - `video_service.py`: Lightricks LTX-Video via Gradio API client.
+   - `audio_service.py`: NVIDIA Riva gRPC client for Chatterbox Multilingual TTS with RIFF/WAVE audio packaging.
+- **REST API Endpoints (`app/api/`)**:
+   - `/api/v1/chat/text`: Multi-turn conversational chat.
+   - `/api/v1/images/generate`: Text-to-Image synthesis.
+   - `/api/v1/images/analyze`: Image understanding & VQA.
+   - `/api/v1/images/edit`: Image modification pipeline.
+   - `/api/v1/videos/generate`: Text-to-Video generation.
+   - `/api/v1/audio/tts`: Text-to-Speech synthesis.
+   - `/api/v1/health`: System telemetry.
 
 ---
 
@@ -62,136 +61,38 @@ We are building a unified intelligent multi-agent platform where a user can ente
 
 ```
 multimodal multi-agent/
-├── README.md                      # Primary project overview and documentation
-├── backend/                       # FastAPI + LangGraph Python server
-│   ├── requirements.txt           # Python dependency specifications
-│   ├── tests/                     # Unit and integration test suites
-│   └── app/                       # Application source code
-│       ├── agents/                # Agent definitions (Supervisor, Text, Audio, Image, Video)
-│       ├── api/                   # FastAPI route controllers and endpoints
-│       ├── core/                  # Global app config, logging, and security settings
-│       ├── database/              # PostgreSQL models, connection pool, and migrations
-│       ├── generated/             # Artifact storage for AI generated assets (images, audio)
-│       ├── prompts/               # Prompt templates and system prompts for LLM agents
-│       ├── schemas/               # Pydantic schemas for request/response validation
-│       ├── services/              # External integrations (OpenAI, HuggingFace, Whisper)
-│       ├── tools/                 # Domain tools invoked by LangChain / LangGraph agents
-│       ├── uploads/               # Temporary storage for ingested audio, images, videos
-│       ├── workers/               # Celery background queue workers for heavy inference
-│       └── workflows/             # LangGraph state machine, graph compilation, routing
+├── AI-Multi-Agent-Backend/            # FastAPI + LangGraph Python server
+│   ├── requirements.txt               # Locked Python dependencies (gradio-client, nvidia-riva-client, etc.)
+│   ├── .env                           # Environment keys (Groq, NVIDIA, HuggingFace)
+│   ├── tests/                         # Unit tests for Text, Image, Video, and Audio agents
+│   └── app/                           # Application source code
+│       ├── agents/                    # Agent orchestrators (Text, Image, Video)
+│       ├── api/                       # FastAPI route routers (chat, images, videos, audio, health)
+│       ├── core/                      # Global settings & configurations (config.py)
+│       ├── generated/                 # Generated images, videos, and audio storage
+│       ├── prompts/                   # System prompt templates
+│       ├── schemas/                   # Pydantic request/response models
+│       ├── services/                  # External service clients (Groq, NVIDIA, HF, Riva)
+│       └── workflows/                 # LangGraph state machine definitions & compiled graphs
 │
-└── frontend/                      # React 19 + Vite Frontend Application
-    ├── package.json               # Node.js dependencies and run scripts
-    ├── vite.config.js             # Vite bundler configuration with Tailwind plugin
-    ├── public/                    # Static public assets (icons, SVGs, favicon)
+└── AI-Multi-Agent-frontend/           # React 19 + Vite Frontend Application
+    ├── README.md                      # Complete system guide & setup instructions
+    ├── PROJECT_OVERVIEW.md            # Comprehensive architecture documentation
+    ├── package.json                   # Node.js dependencies
     └── src/
-        ├── App.jsx                # Root React component mounting the Navigation router
-        ├── App.css                # Root level resets
-        ├── index.css              # Global Tailwind CSS directives and custom scrollbars
-        ├── main.jsx               # Application entry point rendering into DOM
-        │
-        ├── Api/                   # Client-side API connectors
-        │   ├── Api.js             # Axios / Fetch client for FastAPI communication
-        │   └── Index.js           # Barrel export for API endpoints
-        │
-        ├── Const/                 # Design System & Application Constants
-        │   └── display.js         # Single source of truth for colors, fonts, radii, heights
-        │
-        ├── customComp/            # Reusable UI component library
-        │   ├── Badge.jsx          # Status and agent modality tags
-        │   ├── Button.jsx         # Themed buttons with loading and icon states
-        │   ├── Card.jsx           # Glassmorphic elevated container
-        │   ├── FileUpload.jsx     # Multimodal drag-and-drop dropzone
-        │   ├── Footer.jsx         # Bottom system telemetry bar
-        │   ├── Input.jsx          # Text inputs with icon slots
-        │   ├── Navbar.jsx         # Top navigation header with Supervisor telemetry
-        │   ├── Sidebar.jsx        # Animated collapsible navigation sidebar with chat history
-        │   ├── Textarea.jsx       # Auto-resizing input textarea
-        │   └── index.js           # Clean barrel exports for all custom components
-        │
-        ├── Routes/                # Routing and Application Shell
-        │   └── Navigation.jsx     # Layout router controlling Navbar/Footer conditional displays
-        │
-        ├── Screen/                # Application Page Views
-        │   ├── Auth/              # Authentication screens (Login, Signup)
-        │   └── Main/              # Core product workflows
-        │       ├── homepage.jsx   # Master dashboard & omnichannel dispatch hub
-        │       ├── ChatScreen.jsx # Full-screen conversational AI workspace
-        │       ├── TextScreen.jsx # Specialized Text AI studio
-        │       ├── AudioScreen.jsx# Specialized Audio / Transcription studio
-        │       ├── ImageScreen.jsx# Specialized Vision & Generation studio
-        │       └── VideoScreen.jsx# Specialized Video analysis studio
-        │
-        ├── store/                 # Client State Management
-        │   └── chatStore.js       # Zustand persistent store for active chats & message logs
-        │
-        ├── Style/                 # Page-specific stylesheets
-        │   └── Home.css           # Radiant glow effects, animations, and pipeline styles
-        │
-        └── utils/                 # Browser API Wrappers & Custom Hooks
-            └── useSpeechRecognition.js # Speech-to-Text hook using Web Speech API
+        ├── Api/Api.js                 # Unified Axios client with generateImage, analyzeImage, editImage, generateVideo, synthesizeSpeech
+        ├── Const/display.js           # Design system tokens and modality themes
+        ├── customComp/                # Reusable UI component library (Buttons, Badges, Cards, etc.)
+        ├── Screen/Main/               # Master workflow screens (homepage, ChatScreen, ImageScreen, VideoScreen)
+        └── store/chatStore.js         # Zustand persistent chat storage
 ```
 
 ---
 
-## 4. Summary of Every Folder & File
+## 4. Testing & Verification
 
-### Root Directory
-- **`README.md`**: Master documentation of project architecture, folder definitions, and milestones.
-- **`backend/`**: Hosts the Python FastAPI server, LangChain agents, LangGraph workflows, and model pipelines.
-- **`frontend/`**: Hosts the React Vite frontend application with Tailwind CSS and the complete design system.
-
----
-
-### Backend Files (`backend/app/`)
-| Folder / File | Purpose |
-|---|---|
-| **`app/agents/`** | Contains code for the 5 agents: Supervisor Agent, Text Agent, Audio Agent, Image Agent, and Video Agent. |
-| **`app/api/`** | Houses FastAPI REST routes for dispatching chats, processing files, and streaming LLM responses. |
-| **`app/core/`** | Stores project configuration (`config.py`), environment variables, and CORS definitions. |
-| **`app/database/`** | Stores PostgreSQL database connections, SQLAlchemy tables, and chat history repositories. |
-| **`app/generated/`** | Local cache folder for assets generated by AI (synthesized Edge-TTS audio, diffusers images). |
-| **`app/prompts/`** | Prompt templates that guide LLM reasoning and agent tool selection. |
-| **`app/schemas/`** | Pydantic data schemas validating incoming chat requests and outgoing model payloads. |
-| **`app/services/`** | Wrappers for third-party SDKs and local models (Faster-Whisper, Edge-TTS, OpenCV, HuggingFace). |
-| **`app/tools/`** | Functions that agents can call (e.g. video frame extractor, audio separator). |
-| **`app/uploads/`** | Temporary directory where user-uploaded files are staged for agent inspection. |
-| **`app/workers/`** | Celery worker tasks for executing long-running asynchronous video/audio processing. |
-| **`app/workflows/`** | LangGraph compiled state graphs defining conditional routing logic between agents. |
-
----
-
-### Frontend Files (`frontend/src/`)
-| Folder / File | Purpose |
-|---|---|
-| **`Const/display.js`** | **Central Design System**: Holds all color codes, font sizes, border radii, heights, widths, and modality themes. |
-| **`customComp/`** | **Component Library**: Independent, reusable building blocks (`Button`, `Badge`, `Navbar`, `Sidebar`, `FileUpload`, `Card`, `Footer`). |
-| **`customComp/Sidebar.jsx`** | Left navigation bar featuring minimize/maximize controls, "+ New Chat", and previous chat history. |
-| **`customComp/Navbar.jsx`** | Header housing runtime telemetry (`Supervisor Online`, `LangGraph: Active`), quick navigation, and new chat triggers. |
-| **`customComp/Footer.jsx`** | Footer showing framework versions, displayed only when scrolled to the end of the homepage. |
-| **`Routes/Navigation.jsx`** | React Router shell that manages layouts, hiding the Navbar and Footer on the `/chat` route. |
-| **`Screen/Main/homepage.jsx`** | Main dashboard with the multimodal dispatch hub, microphone recording, agent cards, and workflow visualization. |
-| **`Screen/Main/ChatScreen.jsx`**| Omnichannel conversational view with a centered half-width input bar, Speech-to-Text button, and supervisor routing insights. |
-| **`store/chatStore.js`** | Zustand store with local storage persistence to retain conversations, titles, and agent messages. |
-| **`Style/Home.css`** | Dedicated styles for multi-layered radial ambient glows, card hover effects, and dispatch bar focus shadows. |
-| **`utils/useSpeechRecognition.js`** | React hook integrating browser Speech-to-Text to translate microphone voice input into text live. |
-| **`Api/Api.js` & `Api/Index.js`** | Ready-to-connect API service layer for communicating with the backend FastAPI endpoints. |
-
----
-
-## 5. Development Roadmap & Next Steps
-
-1. **Frontend Polish** *(Completed)*:
-   - Full 100% wide responsive home screen with radiant glow background.
-   - Smooth collapsible/expandable sidebar with persistent chat drawer.
-   - Omnichannel chat screen with centered half-width input and Speech-to-Text.
-   - Telemetry moved to Navbar, Footer pinned to home page bottom.
-2. **Backend Phase 1 (Core FastAPI)**:
-   - Create `backend/app/main.py`, setup CORS, health checks, and config loaders.
-3. **Backend Phase 2 (LangGraph Multi-Agent Workflows)**:
-   - Implement `workflows/state.py` and `workflows/graph.py` with the Supervisor routing node.
-4. **Backend Phase 3 (Modality Pipelines)**:
-   - Wire Whisper audio transcription, OpenCV video sampling, and vision models.
-5. **Full Integration**:
-   - Connect frontend `Api.js` to backend FastAPI streaming endpoints.
-
+All automated tests in `tests/` pass with 100% success:
+- `test_text_agent.py` — Verifies multi-turn Groq LLM responses.
+- `test_image_agent.py` — Verifies FLUX 3 generation and PaliGemma analysis.
+- `test_video_agent.py` — Verifies LTX-Video synthesis (704×512 MP4).
+- `test_audio_agent.py` — Verifies NVIDIA Chatterbox TTS and RIFF/WAVE header integrity.
