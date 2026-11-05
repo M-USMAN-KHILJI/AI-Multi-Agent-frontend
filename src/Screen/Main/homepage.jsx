@@ -462,47 +462,6 @@ export const HomePage = () => {
           onSubmit={handleDispatch}
           className="dispatch-bar-pro rounded-2xl p-4 sm:p-5 flex flex-col gap-4"
         >
-          {/* Modality Selector Tabs */}
-          <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-white/8">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider mr-1.5">
-                Target Modality:
-              </span>
-              {[
-                { id: 'auto', label: 'Auto (Supervisor)', color: colors.supervisor },
-                { id: 'text', label: 'Text AI', color: colors.textAgent },
-                { id: 'audio', label: 'Audio AI', color: colors.audioAgent },
-                { id: 'image', label: 'Image AI', color: colors.imageAgent },
-                { id: 'video', label: 'Video AI', color: colors.videoAgent },
-              ].map((tab) => {
-                const isActive = selectedModality === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setSelectedModality(tab.id)}
-                    style={{
-                      backgroundColor: isActive ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                      color: isActive ? '#ffffff' : colors.textSecondary,
-                      borderRadius: radius.md,
-                      borderColor: isActive ? 'rgba(99, 102, 241, 0.5)' : 'rgba(255, 255, 255, 0.06)',
-                    }}
-                    className="px-3 py-1.5 text-xs font-semibold border transition-all hover:text-white hover:bg-white/10 cursor-pointer active:scale-95"
-                  >
-                    <span style={{ color: tab.color }} className="mr-1">●</span> {tab.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Live Predicted Route Indicator */}
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <span className="text-[11px] font-mono uppercase text-gray-400">Evaluated Route:</span>
-              <Badge variant={predictedAgent} size="sm">
-                {predictedAgent.toUpperCase()} AGENT
-              </Badge>
-            </div>
-          </div>
 
           {/* Listening Live Indicator */}
           {isListening && (
@@ -515,9 +474,24 @@ export const HomePage = () => {
 
           {/* Prompt Input Row */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
-              <FiZap className="w-4 h-4" />
-            </div>
+            {/* File Upload Trigger (Moved to Left Side) */}
+            {/* File Upload Trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowUploader(!showUploader)
+                setActiveTabModality(selectedModality === 'auto' ? 'all' : selectedModality)
+              }}
+              style={{
+                backgroundColor: showUploader ? colors.primary : 'rgba(255, 255, 255, 0.06)',
+                color: showUploader ? '#fff' : colors.textSecondary,
+                borderRadius: radius.lg,
+              }}
+              className="p-2.5 transition-all hover:text-white hover:bg-white/10 shrink-0 cursor-pointer border border-white/5 active:scale-95"
+              title="Attach Audio, Image, or Video file"
+            >
+              <FiPaperclip className="w-4 h-4" />
+            </button>
             <input
               type="text"
               value={prompt}
@@ -544,24 +518,6 @@ export const HomePage = () => {
               title={isListening ? 'Listening... Click to stop' : 'Click to speak (Speech-to-Text)'}
             >
               <FiMic className="w-4 h-4" />
-            </button>
-
-            {/* File Upload Trigger */}
-            <button
-              type="button"
-              onClick={() => {
-                setShowUploader(!showUploader)
-                setActiveTabModality(selectedModality === 'auto' ? 'all' : selectedModality)
-              }}
-              style={{
-                backgroundColor: showUploader ? colors.primary : 'rgba(255, 255, 255, 0.06)',
-                color: showUploader ? '#fff' : colors.textSecondary,
-                borderRadius: radius.lg,
-              }}
-              className="p-2.5 transition-all hover:text-white hover:bg-white/10 shrink-0 cursor-pointer border border-white/5 active:scale-95"
-              title="Attach Audio, Image, or Video file"
-            >
-              <FiPaperclip className="w-4 h-4" />
             </button>
 
             {/* Send / Dispatch Button */}
@@ -607,29 +563,7 @@ export const HomePage = () => {
                 onClear={() => setSelectedFile(null)}
               />
             </div>
-          )}
-
-          {/* Quick Prompt Starters (Interactive Chips) */}
-          <div className="flex items-center gap-2 pt-1 overflow-x-auto text-xs pb-1 custom-scroll">
-            <span className="text-gray-400 font-semibold text-[11px] uppercase tracking-wide shrink-0 mr-1">
-              Suggestions:
-            </span>
-            {quickPrompts.map((item, idx) => {
-              const PromptIcon = item.icon
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleQuickPrompt(item)}
-                  className="px-3 py-1.5 rounded-lg bg-white/4 hover:bg-white/8 border border-white/6 hover:border-indigo-500/30 text-gray-300 hover:text-white transition-all truncate text-left shrink-0 max-w-[240px] cursor-pointer flex items-center gap-2 active:scale-98"
-                >
-                  <PromptIcon className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                  <span className="truncate">{item.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </form>
+          )}</form>
       </div>
 
       {/* Modality Agent Bento Grid Section */}
