@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-export const BACKEND_URL = 'http://localhost:8000'
+// Use VITE_API_URL if set in Vercel environment variables, otherwise fallback to local backend
+export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 // Base Axios instance configured for OmniAgent Backend
 const apiClient = axios.create({
