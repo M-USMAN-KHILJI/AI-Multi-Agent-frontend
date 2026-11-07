@@ -157,12 +157,12 @@ export const generateVideo = async (prompt, seed = -1) => {
 }
 
 /**
- * Text-to-Speech API Call (NVIDIA Resemble.AI Chatterbox TTS)
+ * Text-to-Speech API Call (ElevenLabs High-Fidelity TTS)
  * @param {string} text - Text to synthesize into speech
- * @param {string} voice - Voice profile
+ * @param {string} voice - Voice profile (default: Sarah)
  * @returns {Promise<{audio_url: string, full_audio_url: string, filename: string, size_bytes: number}>}
  */
-export const synthesizeSpeech = async (text, voice = 'Chatterbox-Multilingual.en-US.Male') => {
+export const synthesizeSpeech = async (text, voice = 'EXAVITQu4vr4xnSDxMaL') => {
   try {
     const payload = { text, voice }
     const response = await apiClient.post('/audio/tts', payload, {
