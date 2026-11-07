@@ -4,11 +4,12 @@ import { useState, useRef, useEffect, useCallback } from 'react'
  * Custom Hook for Speech-to-Text using Web Speech API
  * Automatically handles browser vendor prefixes (SpeechRecognition / webkitSpeechRecognition)
  */
-export const useSpeechRecognition = ({ onTranscriptChange, onError } = {}) => {
+export const useSpeechRecognition = ({ onTranscriptChange, onSpeechEnd, onError } = {}) => {
   const [isListening, setIsListening] = useState(false)
   const [isSupported, setIsSupported] = useState(false)
   const recognitionRef = useRef(null)
   const initialTextRef = useRef('')
+  const latestTranscriptRef = useRef('')
 
   useEffect(() => {
     const SpeechRecognition =
@@ -35,11 +36,15 @@ export const useSpeechRecognition = ({ onTranscriptChange, onError } = {}) => {
         }
 
         const spoken = (finalTranscript + interimTranscript).trim()
-        if (spoken && onTranscriptChange) {
+        if (spoken) {
           const prefix = initialTextRef.current
             ? initialTextRef.current.trim() + ' '
             : ''
-          onTranscriptChange(prefix + spoken)
+          const fullText = prefix + spoken
+          latestTranscriptRef.current = fullText
+          if (onTranscriptChange) {
+            onTranscriptChange(fullText)
+          }
         }
       }
 
@@ -87,8 +92,16 @@ export const useSpeechRecognition = ({ onTranscriptChange, onError } = {}) => {
           console.error('Error stopping speech recognition:', err)
         }
         setIsListening(false)
+        // User clicked mic button a second time to stop & send!
+        if (onSpeechEnd && latestTranscriptRef.current) {
+          const textToSubmit = latestTranscriptRef.current
+          latestTranscriptRef.current = ''
+          initialTextRef.current = ''
+          onSpeechEnd(textToSubmit)
+        }
       } else {
         try {
+          latestTranscriptRef.current = currentInputValue || ''
           initialTextRef.current = currentInputValue || ''
           recognitionRef.current?.start()
           setIsListening(true)
@@ -98,7 +111,7 @@ export const useSpeechRecognition = ({ onTranscriptChange, onError } = {}) => {
         }
       }
     },
-    [isSupported, isListening]
+    [isSupported, isListening, onSpeechEnd]
   )
 
   return {

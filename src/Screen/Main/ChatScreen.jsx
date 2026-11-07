@@ -115,6 +115,12 @@ export const ChatScreen = () => {
   // Speech-to-Text Recognition Hook
   const { isListening, toggleListening } = useSpeechRecognition({
     onTranscriptChange: (text) => setInput(text),
+    onSpeechEnd: (finalSpokenText) => {
+      // Automatically send message when mic recording finishes
+      if (finalSpokenText && finalSpokenText.trim()) {
+        executeDispatch(finalSpokenText.trim())
+      }
+    },
   })
 
   const messagesEndRef = useRef(null)
@@ -184,14 +190,13 @@ export const ChatScreen = () => {
     return 'text'
   }
 
-  const handleSendMessage = async (e) => {
-    if (e) e.preventDefault()
-    if (!input.trim() && !selectedFile) return
+  const executeDispatch = async (promptToSend, attachedFileToSend = null) => {
+    if (!promptToSend && !attachedFileToSend) return
     if (!currentChat) return
 
     const targetChatId = currentChat.id
-    const userPrompt = input.trim()
-    const attachedFile = selectedFile
+    const userPrompt = promptToSend ? promptToSend.trim() : ''
+    const attachedFile = attachedFileToSend
 
     // Add user message to store
     addMessage(targetChatId, {
@@ -285,7 +290,7 @@ export const ChatScreen = () => {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         })
       } else {
-        // Other modalities (audio) placeholder pipeline for upcoming step
+        // Other modalities (audio)
         let botResponse = ''
         let agentName = 'Audio AI Agent (Whisper STT / Edge-TTS)'
         let routingReason = 'Supervisor detected audio keywords/files. Invoked speech recognition & audio pipeline.'
@@ -317,6 +322,12 @@ export const ChatScreen = () => {
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  const handleSendMessage = async (e) => {
+    if (e) e.preventDefault()
+    if (!input.trim() && !selectedFile) return
+    executeDispatch(input, selectedFile)
   }
 
   const handleKeyDown = (e) => {
