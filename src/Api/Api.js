@@ -1,7 +1,9 @@
 import axios from 'axios'
 
-// Use VITE_API_URL if set in Vercel environment variables, otherwise fallback to local backend
-export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Railway Deployed Backend URL (fallback to VITE_API_URL if configured)
+export const BACKEND_URL =
+  import.meta.env.VITE_API_URL ||
+  'https://ai-multi-agent-backend-production.up.railway.app'
 
 // Base Axios instance configured for OmniAgent Backend
 const apiClient = axios.create({
