@@ -14,8 +14,10 @@ import {
   Badge,
   Card,
   FileUpload,
+  AuthRequiredModal,
 } from '../../customComp'
 import { useChatStore } from '../../store/chatStore'
+import { useAuthStore } from '../../store/authStore'
 import { useSpeechRecognition } from '../../utils/useSpeechRecognition'
 import '../../Style/Home.css'
 import {
@@ -50,6 +52,7 @@ import {
 export const HomePage = () => {
   const navigate = useNavigate()
   const { createNewChat, addMessage } = useChatStore()
+  const { isAuthenticated } = useAuthStore()
 
   const [prompt, setPrompt] = useState('')
   const [selectedModality, setSelectedModality] = useState('auto') // 'auto' | 'text' | 'audio' | 'image' | 'video'
@@ -57,6 +60,8 @@ export const HomePage = () => {
   const [showUploader, setShowUploader] = useState(false)
   const [activeTabModality, setActiveTabModality] = useState('all')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [gatedFeatureName, setGatedFeatureName] = useState('Image & Video Generation')
 
   // GSAP Scope Container Reference
   const containerRef = useRef(null)
@@ -289,10 +294,18 @@ export const HomePage = () => {
     if (e) e.preventDefault()
     if (!prompt.trim() && !selectedFile) return
 
-    setIsProcessing(true)
-
     const userPrompt = prompt.trim()
     const targetModality = predictedAgent
+
+    // Gated Check: Image & Video Generation require user login
+    if (!isAuthenticated && (targetModality === 'image' || targetModality === 'video')) {
+      const featureTitle = targetModality === 'image' ? 'Image AI Generation' : 'Video AI Generation'
+      setGatedFeatureName(featureTitle)
+      setShowAuthModal(true)
+      return
+    }
+
+    setIsProcessing(true)
 
     // Modality agent names
     const agentMap = {
@@ -334,6 +347,13 @@ export const HomePage = () => {
 
   // Handle direct agent launch from cards
   const handleStartDirectAgentChat = (agent) => {
+    // Gated Check: Image and Video cards require user login
+    if (!isAuthenticated && (agent.id === 'image' || agent.id === 'video')) {
+      setGatedFeatureName(agent.title)
+      setShowAuthModal(true)
+      return
+    }
+
     const defaultPrompts = {
       text: 'Explain how LangGraph supervisor patterns coordinate specialized agents.',
       audio: 'I want to transcribe or synthesize audio with the Audio Agent.',
@@ -739,6 +759,22 @@ export const HomePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Authentication Required Modal for Gated Features (Image & Video) */}
+      <AuthRequiredModal
+        isOpen={showAuthModal}
+        featureName={gatedFeatureName}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={() => {
+          setShowAuthModal(false)
+          navigate('/login', {
+            state: {
+              reason: `Sign in required to access ${gatedFeatureName}.`,
+              from: '/',
+            },
+          })
+        }}
+      />
     </div>
   )
 }

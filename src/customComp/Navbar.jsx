@@ -2,20 +2,25 @@ import React from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { colors, height, radius, fontSize } from '../Const/display'
 import { useChatStore } from '../store/chatStore'
+import { useAuthStore } from '../store/authStore'
 import {
   FiCpu,
   FiPlus,
   FiSettings,
   FiLayers,
+  FiLogIn,
+  FiLogOut,
+  FiUser,
 } from 'react-icons/fi'
 
 /**
  * Top Navbar Component
- * Houses the Telemetry, Supervisor Status, LangGraph/LangChain badges, and New Chat button
+ * Houses the Telemetry, Supervisor Status, LangGraph/LangChain badges, New Chat, and Auth Status
  */
 export const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate()
   const { createNewChat } = useChatStore()
+  const { user, isAuthenticated, logout } = useAuthStore()
 
   const handleNewChat = () => {
     const newChat = createNewChat()
@@ -93,7 +98,7 @@ export const Navbar = ({ onToggleSidebar }) => {
         </span>
       </div>
 
-      {/* Right: LangGraph/LangChain telemetry + New Chat Button + Settings */}
+      {/* Right: Auth Status + New Chat Button + Settings */}
       <div className="flex items-center gap-2.5 sm:gap-3">
         <div className="hidden xl:flex items-center gap-2 text-xs text-gray-400 font-mono">
           <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/5 text-[11px]">
@@ -103,6 +108,38 @@ export const Navbar = ({ onToggleSidebar }) => {
             LangChain: <span className="text-indigo-300">v1.4</span>
           </span>
         </div>
+
+        {/* User Auth Avatar / Login Pill */}
+        {isAuthenticated && user ? (
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-800/80 border border-white/10 text-xs">
+            <img
+              src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.name}`}
+              alt={user.name}
+              className="w-5 h-5 rounded-full border border-indigo-400/50"
+            />
+            <span className="text-gray-200 font-medium hidden sm:inline max-w-[100px] truncate">
+              {user.name}
+            </span>
+            <button
+              onClick={() => logout()}
+              title="Sign Out"
+              className="text-gray-400 hover:text-red-400 p-0.5 transition-colors cursor-pointer"
+            >
+              <FiLogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <Link
+            to="/login"
+            style={{
+              borderRadius: radius.md,
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-all cursor-pointer"
+          >
+            <FiLogIn className="w-3.5 h-3.5" />
+            <span>Sign In</span>
+          </Link>
+        )}
 
         <button
           type="button"
@@ -115,7 +152,8 @@ export const Navbar = ({ onToggleSidebar }) => {
           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white hover:brightness-110 active:scale-95 transition-all cursor-pointer"
         >
           <FiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span>Open New Chat</span>
+          <span className="hidden sm:inline">Open New Chat</span>
+          <span className="sm:hidden">New</span>
         </button>
 
         <Link

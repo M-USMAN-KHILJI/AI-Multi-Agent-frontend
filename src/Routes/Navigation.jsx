@@ -3,10 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { Navbar, Sidebar, Footer } from '../customComp'
 import { HomePage } from '../Screen/Main/homepage'
 import { ChatScreen } from '../Screen/Main/ChatScreen'
+import { Login } from '../Screen/Auth/Login'
 import { colors } from '../Const/display'
 
 /**
  * Inner Application Layout Shell
+ * - Standalone full-screen layout for Auth routes (/login, /signin)
  * - Removes Navbar completely on chat page
  * - Fixes input field permanently by isolating scroll to chat messages
  * - Renders footer only at the end of the home page
@@ -15,6 +17,17 @@ const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   const isChatRoute = location.pathname.startsWith('/chat')
+  const isAuthRoute = location.pathname === '/login' || location.pathname === '/signin'
+
+  // Standalone layout for Authentication Pages (No Navbar/Sidebar/Footer distractions)
+  if (isAuthRoute) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signin" element={<Login />} />
+      </Routes>
+    )
+  }
 
   return (
     <div
@@ -74,5 +87,4 @@ export const Navigation = () => {
     </BrowserRouter>
   )
 }
-
 export default Navigation

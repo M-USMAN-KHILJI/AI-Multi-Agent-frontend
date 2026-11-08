@@ -7,8 +7,9 @@ import {
   shadows,
   modalityThemes,
 } from '../../Const/display'
-import { Button, Badge, Card, FileUpload } from '../../customComp'
+import { Button, Badge, Card, FileUpload, AuthRequiredModal } from '../../customComp'
 import { useChatStore } from '../../store/chatStore'
+import { useAuthStore } from '../../store/authStore'
 import {
   FiCpu,
   FiUser,
@@ -39,6 +40,7 @@ export const ChatScreen = () => {
   const navigate = useNavigate()
   const { chats, activeChatId, setActiveChat, addMessage, createNewChat } =
     useChatStore()
+  const { isAuthenticated } = useAuthStore()
 
   const [input, setInput] = useState('')
   const [selectedFile, setSelectedFile] = useState(null)
@@ -47,6 +49,8 @@ export const ChatScreen = () => {
   const [copiedId, setCopiedId] = useState(null)
   const [speakingMsgId, setSpeakingMsgId] = useState(null)
   const [activeModalMedia, setActiveModalMedia] = useState(null) // { type: 'image' | 'video', url: string }
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [gatedFeatureName, setGatedFeatureName] = useState('Image & Video Generation')
   const currentAudioRef = useRef(null)
 
   const handleDownloadMedia = async (url, defaultFilename) => {
@@ -220,6 +224,15 @@ export const ChatScreen = () => {
 
     // Supervisor Analysis & Routing
     const targetModality = detectModality(userPrompt, attachedFile)
+
+    // Gated Check: Image & Video Generation require user login
+    if (!isAuthenticated && (targetModality === 'image' || targetModality === 'video')) {
+      setIsProcessing(false)
+      const featureTitle = targetModality === 'image' ? 'Image AI Generation' : 'Video AI Generation'
+      setGatedFeatureName(featureTitle)
+      setShowAuthModal(true)
+      return
+    }
 
     try {
       if (targetModality === 'text') {
@@ -764,6 +777,22 @@ export const ChatScreen = () => {
           </div>
         </div>
       )}
+
+      {/* Authentication Required Modal for Gated Modalities */}
+      <AuthRequiredModal
+        isOpen={showAuthModal}
+        featureName={gatedFeatureName}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={() => {
+          setShowAuthModal(false)
+          navigate('/login', {
+            state: {
+              reason: `Sign in required to access ${gatedFeatureName}.`,
+              from: `/chat/${currentChat?.id || ''}`,
+            },
+          })
+        }}
+      />
     </div>
   )
 }
