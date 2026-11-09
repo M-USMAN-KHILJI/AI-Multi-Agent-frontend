@@ -3,7 +3,7 @@ import axios from 'axios'
 // Railway Deployed Backend URL (fallback to VITE_API_URL if configured)
 export const BACKEND_URL =
   import.meta.env.VITE_API_URL ||
-  'https://ai-multi-agent-backend-production.up.railway.app'
+  'http://127.0.0.1:8000'
 
 // Base Axios instance configured for OmniAgent Backend
 const apiClient = axios.create({
