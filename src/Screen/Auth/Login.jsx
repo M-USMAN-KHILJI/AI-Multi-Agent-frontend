@@ -9,16 +9,18 @@ import {
   FiArrowRight,
   FiAlertCircle,
   FiCheckCircle,
-  FiShield,
   FiArrowLeft,
   FiZap,
 } from 'react-icons/fi'
 import { useAuthStore } from '../../store/authStore'
+import { loginUser } from '../../Api/Api'
 import '../../Style/login.css'
+import '../../Style/Sigin.css'
 
 /**
  * Login Screen - OmniAgent AI Platform
  * Built with UI/UX Pro Max Glassmorphism & Cyberpunk Design Intelligence
+ * Validates against PostgreSQL (modeldb) with field-level error feedback.
  */
 export const Login = () => {
   const navigate = useNavigate()
@@ -31,7 +33,13 @@ export const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+
+  // Granular Field-Specific Errors
+  const [fieldErrors, setFieldErrors] = useState({
+    email: '',
+    password: '',
+  })
+  const [generalError, setGeneralError] = useState('')
   const [success, setSuccess] = useState('')
 
   // Check if redirected from a gated feature (e.g., Image/Video generation)
@@ -40,51 +48,59 @@ export const Login = () => {
 
   // Quick Demo Autofill
   const handleAutofillDemo = () => {
-    setEmail('developer@omniagent.ai')
-    setPassword('OmniAgent2026!')
-    setError('')
+    setEmail('usman_test@gmail.com')
+    setPassword('Password123!')
+    setFieldErrors({ email: '', password: '' })
+    setGeneralError('')
   }
 
   // Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
+    setFieldErrors({ email: '', password: '' })
+    setGeneralError('')
     setSuccess('')
 
-    // 1. Validation
+    let hasClientError = false
+    const newFieldErrors = { email: '', password: '' }
+
+    // 1. Client-Side Checks
     if (!email.trim()) {
-      setError('Please provide your email address.')
-      return
+      newFieldErrors.email = 'Please provide your email address.'
+      hasClientError = true
+    } else {
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (!emailPattern.test(email.trim())) {
+        newFieldErrors.email = 'Please enter a valid email address (e.g. name@gmail.com).'
+        hasClientError = true
+      }
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email.trim())) {
-      setError('Please enter a valid email address (e.g., name@company.com).')
-      return
-    }
+
     if (!password) {
-      setError('Please enter your password.')
-      return
+      newFieldErrors.password = 'Please enter your password.'
+      hasClientError = true
+    } else if (password.length < 6) {
+      newFieldErrors.password = 'Password must be at least 6 characters long.'
+      hasClientError = true
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.')
+
+    if (hasClientError) {
+      setFieldErrors(newFieldErrors)
       return
     }
 
-    // 2. Mock Authenticate (or Backend JWT integration)
+    // 2. Authenticate Against Backend & PostgreSQL (modeldb)
     setIsLoading(true)
     try {
-      // Simulate real-world network auth delay
-      await new Promise((resolve) => setTimeout(resolve, 800))
-
-      const userName = email.split('@')[0]
-      const capitalizedName = userName.charAt(0).toUpperCase() + userName.slice(1)
+      const data = await loginUser(email.trim(), password)
 
       // Store in persistent Zustand auth store
       login({
-        email: email.trim(),
-        name: capitalizedName,
-        token: `jwt_token_${Date.now()}`,
-        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(userName)}`,
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        token: data.token,
+        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
       })
 
       setSuccess('Authentication successful! Initializing your workspace...')
@@ -93,7 +109,15 @@ export const Login = () => {
         navigate(returnTo, { replace: true })
       }, 600)
     } catch (err) {
-      setError('Unable to authenticate at this time. Please try again.')
+      // Backend returned field-level error (email incorrect or password incorrect)
+      if (err.field && err.message) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          [err.field]: err.message,
+        }))
+      } else {
+        setGeneralError(err.message || 'Unable to authenticate at this time. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -132,11 +156,11 @@ export const Login = () => {
             </div>
           )}
 
-          {/* Error Alert */}
-          {error && (
+          {/* General Error Alert */}
+          {generalError && (
             <div className="auth-alert auth-alert-error">
               <FiAlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <div>{error}</div>
+              <div>{generalError}</div>
             </div>
           )}
 
@@ -154,7 +178,7 @@ export const Login = () => {
             <div className="auth-field-group">
               <label htmlFor="login-email" className="auth-label">
                 <span>Email Address</span>
-                <span className="text-[11px] text-gray-500 font-normal">Required</span>
+                <span className="text-[11px] text-gray-500 font-normal">e.g. @gmail.com</span>
               </label>
               <div className="auth-input-container">
                 <FiMail className="auth-input-icon w-4 h-4" />
@@ -162,16 +186,22 @@ export const Login = () => {
                   id="login-email"
                   type="email"
                   autoComplete="email"
-                  placeholder="name@company.com"
+                  placeholder="name@gmail.com"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value)
-                    if (error) setError('')
+                    if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: '' }))
                   }}
-                  className="auth-input"
+                  className={`auth-input ${fieldErrors.email ? 'auth-input-error' : ''}`}
                   required
                 />
               </div>
+              {fieldErrors.email && (
+                <div className="auth-field-error-msg">
+                  <FiAlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{fieldErrors.email}</span>
+                </div>
+              )}
             </div>
 
             {/* Password Field */}
@@ -199,9 +229,9 @@ export const Login = () => {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
-                    if (error) setError('')
+                    if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: '' }))
                   }}
-                  className="auth-input"
+                  className={`auth-input ${fieldErrors.password ? 'auth-input-error' : ''}`}
                   required
                 />
                 <button
@@ -218,6 +248,12 @@ export const Login = () => {
                   )}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <div className="auth-field-error-msg">
+                  <FiAlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{fieldErrors.password}</span>
+                </div>
+              )}
             </div>
 
             {/* Options Row */}
@@ -264,11 +300,11 @@ export const Login = () => {
             onClick={handleAutofillDemo}
             role="button"
             tabIndex={0}
-            title="Click to auto-fill demo credentials"
+            title="Click to auto-fill verified credentials"
           >
             <div className="flex items-center gap-2">
-              <FiShield className="w-4 h-4 text-indigo-400" />
-              <span className="auth-quick-text">Autofill Demo Developer Account</span>
+              <FiCheckCircle className="w-4 h-4 text-emerald-400" />
+              <span className="auth-quick-text">Autofill Verified Test Account</span>
             </div>
             <span className="auth-quick-badge">1-Click</span>
           </div>
@@ -293,4 +329,3 @@ export const Login = () => {
 }
 
 export default Login
-

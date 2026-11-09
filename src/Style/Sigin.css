@@ -1,0 +1,63 @@
+/* ==========================================================================
+   OMNIAGENT AI - SIGNIN / REGISTRATION PAGE STYLING
+   Glassmorphism + Neon Cyberpunk Dark Aesthetic
+   Powered by UI/UX Pro Max Design Intelligence
+   ========================================================================== */
+
+@import './login.css';
+
+/* Dedicated Signup Specific Accents */
+.auth-input-error {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22) !important;
+}
+
+.auth-field-error-msg {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: #f87171;
+  margin-top: 0.3rem;
+  line-height: 1.3;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Password Strength Indicator */
+.auth-strength-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.auth-strength-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+.auth-strength-bar.weak {
+  background: #ef4444;
+}
+
+.auth-strength-bar.medium {
+  background: #f59e0b;
+}
+
+.auth-strength-bar.strong {
+  background: #10b981;
+}
+
+.auth-strength-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 0.25rem;
+}
+

@@ -40,7 +40,7 @@ export const ChatScreen = () => {
   const navigate = useNavigate()
   const { chats, activeChatId, setActiveChat, addMessage, createNewChat } =
     useChatStore()
-  const { isAuthenticated } = useAuthStore()
+  const { user, isAuthenticated } = useAuthStore()
 
   const [input, setInput] = useState('')
   const [selectedFile, setSelectedFile] = useState(null)
@@ -244,8 +244,16 @@ export const ChatScreen = () => {
             content: m.text,
           }))
 
-        // Call FastAPI Text AI Agent backend via Axios
-        const data = await sendTextMessage(userPrompt, history)
+        // Call FastAPI Text AI Agent backend via Axios (saving user & chat to PostgreSQL modeldb)
+        const data = await sendTextMessage(
+          userPrompt,
+          history,
+          0.7,
+          1024,
+          user?.name || null,
+          user?.email || null,
+          targetChatId
+        )
 
         addMessage(targetChatId, {
           id: `msg_${Date.now()}_a`,

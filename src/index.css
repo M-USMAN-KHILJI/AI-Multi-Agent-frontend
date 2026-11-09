@@ -8,7 +8,15 @@
     --primary: #6366f1;
   }
 
-  * {
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    line-height: 1.5;
+    box-sizing: border-box;
+  }
+
+  *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -23,7 +31,9 @@
     background-attachment: fixed;
     color: #f3f4f6;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 1rem;
     min-height: 100vh;
+    width: 100%;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -48,10 +58,10 @@
     background: #0d111a;
   }
   ::-webkit-scrollbar-thumb {
-    background: #242c3d;
-    border-radius: 9999px;
+    background: #1e293b;
+    border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3b4760;
+    background: #334155;
   }
 }

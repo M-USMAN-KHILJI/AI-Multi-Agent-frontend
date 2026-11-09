@@ -20,15 +20,29 @@ const apiClient = axios.create({
  * @param {Array<{role: string, content: string}>} history - Chat history context
  * @param {number} temperature - Sampling temperature (default 0.7)
  * @param {number} maxTokens - Max token limit (default 1024)
- * @returns {Promise<{response: string, agent_name: string, model: string, usage: object}>}
+ * @param {string} userName - Optional user name
+ * @param {string} userEmail - Optional user email
+ * @param {string} sessionId - Optional chat session ID
+ * @returns {Promise<{response: string, agent_name: string, model: string, usage: object, session_id: string}>}
  */
-export const sendTextMessage = async (message, history = [], temperature = 0.7, maxTokens = 1024) => {
+export const sendTextMessage = async (
+  message,
+  history = [],
+  temperature = 0.7,
+  maxTokens = 1024,
+  userName = null,
+  userEmail = null,
+  sessionId = null
+) => {
   try {
     const payload = {
       message,
       history,
       temperature,
       max_tokens: maxTokens,
+      user_name: userName,
+      user_email: userEmail,
+      session_id: sessionId,
     }
     const response = await apiClient.post('/chat/text', payload)
     return response.data
@@ -182,6 +196,50 @@ export const synthesizeSpeech = async (text, voice = 'EXAVITQu4vr4xnSDxMaL') => 
       throw new Error(error.response.data.detail)
     }
     throw new Error(error.message || 'Failed to synthesize speech')
+  }
+}
+
+/**
+ * User Sign Up API Call
+ * @param {string} name - User's full name
+ * @param {string} email - User's email
+ * @param {string} password - User's chosen password
+ * @returns {Promise<{id: string, name: string, email: string, token: string, message: string}>}
+ */
+export const signUpUser = async (name, email, password) => {
+  try {
+    const response = await apiClient.post('/auth/signup', {
+      name,
+      email,
+      password,
+    })
+    return response.data
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw error.response.data.detail
+    }
+    throw { message: error.message || 'Failed to sign up.' }
+  }
+}
+
+/**
+ * User Login API Call
+ * @param {string} email - User's email or username
+ * @param {string} password - User's password
+ * @returns {Promise<{id: string, name: string, email: string, token: string, message: string}>}
+ */
+export const loginUser = async (email, password) => {
+  try {
+    const response = await apiClient.post('/auth/login', {
+      email,
+      password,
+    })
+    return response.data
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw error.response.data.detail
+    }
+    throw { message: error.message || 'Failed to sign in.' }
   }
 }
 

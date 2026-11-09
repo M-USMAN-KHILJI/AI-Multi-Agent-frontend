@@ -4,6 +4,7 @@ import { Navbar, Sidebar, Footer } from '../customComp'
 import { HomePage } from '../Screen/Main/homepage'
 import { ChatScreen } from '../Screen/Main/ChatScreen'
 import { Login } from '../Screen/Auth/Login'
+import { Sigin } from '../Screen/Auth/Sigin'
 import { colors } from '../Const/display'
 
 /**
@@ -24,7 +25,7 @@ const AppLayout = () => {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/signin" element={<Login />} />
+        <Route path="/signin" element={<Sigin />} />
       </Routes>
     )
   }
