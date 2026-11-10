@@ -99,8 +99,8 @@ export const Navbar = ({ onToggleSidebar }) => {
       </div>
 
       {/* Right: Auth Status + New Chat Button + Settings */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
-        <div className="hidden xl:flex items-center gap-2 text-xs text-gray-400 font-mono">
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="hidden 2xl:flex items-center gap-2 text-xs text-gray-400 font-mono">
           <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/5 text-[11px]">
             LangGraph: <span className="text-emerald-400">Active</span>
           </span>
@@ -111,13 +111,13 @@ export const Navbar = ({ onToggleSidebar }) => {
 
         {/* User Auth Avatar / Login Pill */}
         {isAuthenticated && user ? (
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-800/80 border border-white/10 text-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full bg-slate-800/80 border border-white/10 text-xs">
             <img
               src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.name}`}
               alt={user.name}
-              className="w-5 h-5 rounded-full border border-indigo-400/50"
+              className="w-5 h-5 rounded-full border border-indigo-400/50 shrink-0"
             />
-            <span className="text-gray-200 font-medium hidden sm:inline max-w-[100px] truncate">
+            <span className="text-gray-200 font-medium hidden md:inline max-w-[90px] truncate">
               {user.name}
             </span>
             <button
@@ -134,7 +134,7 @@ export const Navbar = ({ onToggleSidebar }) => {
             style={{
               borderRadius: radius.md,
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-all cursor-pointer whitespace-nowrap"
           >
             <FiLogIn className="w-3.5 h-3.5" />
             <span>Sign In</span>
@@ -149,11 +149,11 @@ export const Navbar = ({ onToggleSidebar }) => {
             borderRadius: radius.md,
             boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
           }}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-white hover:brightness-110 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
         >
           <FiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
           <span className="hidden sm:inline">Open New Chat</span>
-          <span className="sm:hidden">New</span>
+          <span className="sm:hidden">Chat</span>
         </button>
 
         <Link
@@ -164,7 +164,7 @@ export const Navbar = ({ onToggleSidebar }) => {
             borderRadius: radius.md,
             color: colors.textSecondary,
           }}
-          className="p-2 hover:text-white hover:border-indigo-500/40 transition-colors"
+          className="p-2 hover:text-white hover:border-indigo-500/40 transition-colors shrink-0"
           title="Settings & API Configuration"
         >
           <FiSettings className="w-4 h-4" />

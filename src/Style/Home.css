@@ -1,6 +1,7 @@
 /* ==========================================================================
    Home & Dashboard Styles - Multimodal Multi-Agent AI Application
    Enhanced with UI/UX Pro Max Design Intelligence (Dark Glassmorphism + Bento)
+   Mobile-First Ultra-Responsive Architecture
    ========================================================================== */
 
 .home-container {
@@ -16,13 +17,13 @@
     linear-gradient(180deg, #090d16 0%, #0d121f 40%, #070a12 100%);
 }
 
-/* Background Ambient Glows with Hardware Acceleration */
+/* Background Ambient Glows with Hardware Acceleration & Responsive Scaling */
 .ambient-glow-1 {
   position: absolute;
   top: -140px;
   left: 25%;
-  width: 650px;
-  height: 650px;
+  width: min(650px, 90vw);
+  height: min(650px, 90vw);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
   filter: blur(120px);
@@ -35,8 +36,8 @@
   position: absolute;
   top: 380px;
   right: 5%;
-  width: 600px;
-  height: 600px;
+  width: min(600px, 80vw);
+  height: min(600px, 80vw);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, transparent 70%);
   filter: blur(130px);
@@ -49,8 +50,8 @@
   position: absolute;
   bottom: 80px;
   left: 10%;
-  width: 550px;
-  height: 550px;
+  width: min(550px, 75vw);
+  height: min(550px, 75vw);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
   filter: blur(120px);
@@ -58,12 +59,18 @@
   z-index: 0;
 }
 
-/* Hero Heading with Multi-Stop Gradient and Glow */
+/* Hero Heading with Multi-Stop Gradient, Glow & Clamp Fluid Typography */
 .hero-gradient-text {
   background: linear-gradient(135deg, #ffffff 15%, #c7d2fe 50%, #e9d5ff 85%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 0 35px rgba(99, 102, 241, 0.25);
+  font-size: clamp(1.75rem, 5vw + 0.5rem, 2.75rem) !important;
+  line-height: 1.15;
+}
+
+.hero-subtext-fluid {
+  font-size: clamp(0.9rem, 1.5vw + 0.4rem, 1.0625rem) !important;
 }
 
 /* UI/UX Pro Max Glassmorphic Bento Cards */
@@ -94,7 +101,7 @@
 }
 
 .bento-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
   box-shadow: 
     0 16px 36px -4px rgba(0, 0, 0, 0.65),
     inset 0 1px 2px 0 rgba(255, 255, 255, 0.2);

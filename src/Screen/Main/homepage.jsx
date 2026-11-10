@@ -442,15 +442,14 @@ export const HomePage = () => {
         </div>
 
         <h1
-          style={{ fontSize: fontSize.hero }}
-          className="hero-headline hero-gradient-text font-black tracking-tight mb-4 leading-[1.12]"
+          className="hero-headline hero-gradient-text font-black tracking-tight mb-4"
         >
           Unified Multimodal Multi-Agent AI Platform
         </h1>
 
         <p
-          style={{ color: colors.textSecondary, fontSize: fontSize.bodyLg }}
-          className="hero-subtext leading-relaxed max-w-2xl font-normal"
+          style={{ color: colors.textSecondary }}
+          className="hero-subtext hero-subtext-fluid leading-relaxed max-w-2xl font-normal px-2"
         >
           A single command center orchestrating <strong className="text-white">Text</strong>,{' '}
           <strong className="text-sky-300">Audio</strong>, <strong className="text-purple-300">Images</strong>, and{' '}
@@ -493,8 +492,7 @@ export const HomePage = () => {
           )}
 
           {/* Prompt Input Row */}
-          <div className="flex items-center gap-3">
-            {/* File Upload Trigger (Moved to Left Side) */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
             {/* File Upload Trigger */}
             <button
               type="button"
@@ -516,43 +514,47 @@ export const HomePage = () => {
               type="text"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder={isListening ? 'Listening... Speak into your microphone' : 'Ask any question, transcribe audio, inspect images with vision, or sample video frames...'}
-              className="w-full bg-transparent text-white placeholder-gray-500 outline-none text-base font-normal leading-relaxed"
+              placeholder={isListening ? 'Listening... Speak into your microphone' : 'Ask any question, transcribe audio, inspect images, or sample video...'}
+              className="flex-1 min-w-[160px] bg-transparent text-white placeholder-gray-500 outline-none text-sm sm:text-base font-normal leading-relaxed"
             />
 
-            {/* Microphone Voice-to-Text Button */}
-            <button
-              type="button"
-              onClick={() => toggleListening(prompt)}
-              style={{
-                backgroundColor: isListening
-                  ? colors.audioAgent
-                  : 'rgba(255, 255, 255, 0.06)',
-                color: isListening ? '#ffffff' : colors.textSecondary,
-                borderRadius: radius.lg,
-                boxShadow: isListening ? '0 0 20px rgba(236, 72, 153, 0.7)' : 'none',
-              }}
-              className={`p-2.5 transition-all shrink-0 cursor-pointer border border-white/5 ${
-                isListening ? 'animate-pulse scale-105' : 'hover:text-white hover:bg-white/10 active:scale-95'
-              }`}
-              title={isListening ? 'Listening... Click to stop' : 'Click to speak (Speech-to-Text)'}
-            >
-              <FiMic className="w-4 h-4" />
-            </button>
+            {/* Action buttons group for mobile flex wrapping */}
+            <div className="flex items-center gap-2 ml-auto shrink-0">
+              {/* Microphone Voice-to-Text Button */}
+              <button
+                type="button"
+                onClick={() => toggleListening(prompt)}
+                style={{
+                  backgroundColor: isListening
+                    ? colors.audioAgent
+                    : 'rgba(255, 255, 255, 0.06)',
+                  color: isListening ? '#ffffff' : colors.textSecondary,
+                  borderRadius: radius.lg,
+                  boxShadow: isListening ? '0 0 20px rgba(236, 72, 153, 0.7)' : 'none',
+                }}
+                className={`p-2.5 transition-all shrink-0 cursor-pointer border border-white/5 ${
+                  isListening ? 'animate-pulse scale-105' : 'hover:text-white hover:bg-white/10 active:scale-95'
+                }`}
+                title={isListening ? 'Listening... Click to stop' : 'Click to speak (Speech-to-Text)'}
+              >
+                <FiMic className="w-4 h-4" />
+              </button>
 
-            {/* Send / Dispatch Button */}
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              icon={FiSend}
-              iconPosition="right"
-              isLoading={isProcessing}
-              disabled={!prompt.trim() && !selectedFile}
-              className="shrink-0 shadow-lg shadow-indigo-500/25 cursor-pointer active:scale-95"
-            >
-              Start Chat
-            </Button>
+              {/* Send / Dispatch Button */}
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                icon={FiSend}
+                iconPosition="right"
+                isLoading={isProcessing}
+                disabled={!prompt.trim() && !selectedFile}
+                className="shrink-0 shadow-lg shadow-indigo-500/25 cursor-pointer active:scale-95 text-xs sm:text-sm px-3 sm:px-4"
+              >
+                <span className="hidden xs:inline">Start Chat</span>
+                <span className="xs:hidden">Send</span>
+              </Button>
+            </div>
           </div>
 
           {/* Collapsible File Upload Section */}
@@ -611,7 +613,7 @@ export const HomePage = () => {
         </div>
 
         {/* 4 Agent Bento Grid Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
           {agentCards.map((agent) => {
             const IconComponent = agent.icon
             return (
