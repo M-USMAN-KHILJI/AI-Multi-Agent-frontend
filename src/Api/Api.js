@@ -244,6 +244,30 @@ export const loginUser = async (email, password) => {
 }
 
 /**
+ * Google Auth API Call (Syncs Firebase Google account with backend PostgreSQL modeldb)
+ * @param {object} googleUser - { name, email, uid, photoURL }
+ * @param {boolean} isSignup - Whether call originated from the signup page
+ * @returns {Promise<{id: string, name: string, email: string, token: string, message: string}>}
+ */
+export const authenticateWithGoogle = async (googleUser, isSignup = false) => {
+  try {
+    const response = await apiClient.post('/auth/google', {
+      email: googleUser.email,
+      name: googleUser.name,
+      uid: googleUser.uid,
+      photo_url: googleUser.photoURL,
+      is_signup: isSignup,
+    })
+    return response.data
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw error.response.data.detail
+    }
+    throw { message: error.message || 'Failed to authenticate with Google.' }
+  }
+}
+
+/**
  * Health check endpoint
  * @returns {Promise<{status: string, agents: object}>}
  */

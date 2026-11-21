@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { colors, radius, fontSize } from '../Const/display'
 import { Badge } from './Badge'
 import { useChatStore } from '../store/chatStore'
+import { useAuthStore } from '../store/authStore'
 import {
   FiHome,
   FiPlus,
@@ -13,6 +14,8 @@ import {
   FiClock,
   FiChevronLeft,
   FiChevronRight,
+  FiLogOut,
+  FiLogIn,
 } from 'react-icons/fi'
 
 /**
@@ -29,6 +32,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const { chats, activeChatId, setActiveChat, createNewChat, deleteChat } = useChatStore()
+  const { user, isAuthenticated, logout } = useAuthStore()
 
   // Handler for New Chat button
   const handleNewChat = () => {
@@ -288,52 +292,121 @@ export const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Multi-Agent Architecture Status Widget */}
-        <div
-          style={{
-            backgroundColor: colors.bgCard,
-            border: `1px solid ${colors.borderGlass}`,
-            borderRadius: radius.md,
-          }}
-          className={`flex flex-col mt-3 shrink-0 overflow-hidden transition-all duration-300 ${
-            isCollapsed ? 'p-2 items-center justify-center' : 'p-2.5 gap-1.5'
-          }`}
-        >
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-1.5">
-              <FiActivity className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span
-                style={{
-                  color: colors.textPrimary,
-                  fontSize: fontSize.caption,
-                }}
-                className={`font-semibold text-xs whitespace-nowrap transition-all duration-200 overflow-hidden ${
-                  isCollapsed ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[120px]'
-                }`}
-              >
-                Supervisor Agent
-              </span>
-            </div>
-            <span
-              className={`text-emerald-400 text-[10px] font-mono transition-all duration-200 overflow-hidden ${
-                isCollapsed ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[40px]'
-              }`}
-            >
-              READY
-            </span>
-          </div>
-          <p
+        {/* Footer Widget: Authenticated User Profile OR Supervisor Architecture Status */}
+        {isAuthenticated && user ? (
+          <div
             style={{
-              color: colors.textMuted,
-              fontSize: fontSize.tiny,
+              backgroundColor: 'rgba(19, 25, 38, 0.85)',
+              border: `1px solid ${colors.borderGlass}`,
+              borderRadius: radius.lg,
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
             }}
-            className={`leading-snug text-left transition-all duration-200 overflow-hidden ${
-              isCollapsed ? 'opacity-0 max-h-0 pointer-events-none' : 'opacity-100 max-h-12'
+            className={`flex items-center mt-3 shrink-0 overflow-hidden transition-all duration-300 backdrop-blur-xl ${
+              isCollapsed ? 'p-2 justify-center' : 'p-2.5 justify-between gap-2.5'
             }`}
           >
-            Routing text, audio, images, and videos via LangGraph state.
-          </p>
-        </div>
+            {/* User Avatar + Name Info */}
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="relative shrink-0">
+                <img
+                  src={
+                    user.avatar ||
+                    user.photoURL ||
+                    `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || 'User')}`
+                  }
+                  alt={user.name}
+                  referrerPolicy="no-referrer"
+                  className="w-9 h-9 rounded-xl border border-indigo-500/50 object-cover shadow-md shadow-indigo-500/20"
+                />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900 animate-pulse" />
+              </div>
+
+              {!isCollapsed && (
+                <div className="flex flex-col min-w-0 overflow-hidden">
+                  <span
+                    style={{
+                      color: colors.textPrimary,
+                      fontSize: fontSize.bodySm,
+                    }}
+                    className="font-semibold truncate leading-tight text-white"
+                  >
+                    {user.name}
+                  </span>
+                  <span
+                    style={{
+                      color: colors.textMuted,
+                      fontSize: fontSize.tiny,
+                    }}
+                    className="truncate text-gray-400 leading-tight mt-0.5"
+                  >
+                    {user.email}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Logout Action Button */}
+            {!isCollapsed && (
+              <button
+                type="button"
+                onClick={() => logout()}
+                style={{
+                  borderRadius: radius.md,
+                }}
+                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all cursor-pointer shrink-0"
+                title="Sign Out"
+              >
+                <FiLogOut className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        ) : (
+          <div
+            style={{
+              backgroundColor: colors.bgCard,
+              border: `1px solid ${colors.borderGlass}`,
+              borderRadius: radius.md,
+            }}
+            className={`flex flex-col mt-3 shrink-0 overflow-hidden transition-all duration-300 ${
+              isCollapsed ? 'p-2 items-center justify-center' : 'p-2.5 gap-1.5'
+            }`}
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-1.5">
+                <FiActivity className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span
+                  style={{
+                    color: colors.textPrimary,
+                    fontSize: fontSize.caption,
+                  }}
+                  className={`font-semibold text-xs whitespace-nowrap transition-all duration-200 overflow-hidden ${
+                    isCollapsed ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[120px]'
+                  }`}
+                >
+                  Supervisor Agent
+                </span>
+              </div>
+              <span
+                className={`text-emerald-400 text-[10px] font-mono transition-all duration-200 overflow-hidden ${
+                  isCollapsed ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[40px]'
+                }`}
+              >
+                READY
+              </span>
+            </div>
+            <p
+              style={{
+                color: colors.textMuted,
+                fontSize: fontSize.tiny,
+              }}
+              className={`leading-snug text-left transition-all duration-200 overflow-hidden ${
+                isCollapsed ? 'opacity-0 max-h-0 pointer-events-none' : 'opacity-100 max-h-12'
+              }`}
+            >
+              Routing text, audio, images, and videos via LangGraph state.
+            </p>
+          </div>
+        )}
       </aside>
     </>
   )

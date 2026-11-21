@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { Navbar, Sidebar, Footer } from '../customComp'
 import { HomePage } from '../Screen/Main/homepage'
 import { ChatScreen } from '../Screen/Main/ChatScreen'
+import { Settings } from '../Screen/Main/settings'
 import { Login } from '../Screen/Auth/Login'
 import { Sigin } from '../Screen/Auth/Sigin'
 import { colors } from '../Const/display'
@@ -66,6 +67,7 @@ const AppLayout = () => {
               <Route path="/" element={<HomePage />} />
               <Route path="/chat/:chatId" element={<ChatScreen />} />
               <Route path="/chat" element={<ChatScreen />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>

@@ -18,7 +18,7 @@ import {
 } from '../../customComp'
 import { useChatStore } from '../../store/chatStore'
 import { useAuthStore } from '../../store/authStore'
-import { useSpeechRecognition } from '../../utils/useSpeechRecognition'
+import { useSpeechRecognition } from '../../hooks'
 import '../../Style/Home.css'
 import {
   FiCpu,

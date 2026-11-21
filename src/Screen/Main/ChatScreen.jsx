@@ -28,7 +28,7 @@ import {
   FiDownload,
   FiMaximize2,
 } from 'react-icons/fi'
-import { useSpeechRecognition } from '../../utils/useSpeechRecognition'
+import { useSpeechRecognition, useMediaDownload } from '../../hooks'
 import { sendTextMessage, generateImage, analyzeImage, editImage, generateVideo, synthesizeSpeech } from '../../Api/Api'
 
 /**
@@ -53,23 +53,11 @@ export const ChatScreen = () => {
   const [gatedFeatureName, setGatedFeatureName] = useState('Image & Video Generation')
   const currentAudioRef = useRef(null)
 
-  const handleDownloadMedia = async (url, defaultFilename) => {
-    try {
-      const response = await fetch(url)
-      const blob = await response.blob()
-      const blobUrl = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = blobUrl
-      a.download = defaultFilename || 'download'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(blobUrl)
-    } catch (error) {
-      console.error('Download error:', error)
-      // Fallback: direct window open
-      window.open(url, '_blank')
-    }
+  // Custom Hook for Media Downloads
+  const { downloadMedia } = useMediaDownload()
+
+  const handleDownloadMedia = (url, defaultFilename) => {
+    downloadMedia(url, defaultFilename)
   }
 
   const handleSpeakMessage = async (id, text) => {
