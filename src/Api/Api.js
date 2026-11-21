@@ -268,6 +268,44 @@ export const authenticateWithGoogle = async (googleUser, isSignup = false) => {
 }
 
 /**
+ * Change User Password (Email accounts only)
+ * @param {string} userId
+ * @param {string} currentPassword
+ * @param {string} newPassword
+ */
+export const changeUserPassword = async (userId, currentPassword, newPassword) => {
+  try {
+    const response = await apiClient.post('/auth/change-password', {
+      user_id: userId,
+      current_password: currentPassword,
+      new_password: newPassword,
+    })
+    return response.data
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw error.response.data.detail
+    }
+    throw { message: error.message || 'Failed to update password.' }
+  }
+}
+
+/**
+ * Fetch User Details from backend
+ * @param {string} userId
+ */
+export const getUserDetails = async (userId) => {
+  try {
+    const response = await apiClient.get(`/auth/user/${userId}`)
+    return response.data
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw error.response.data.detail
+    }
+    throw { message: error.message || 'Failed to fetch user details.' }
+  }
+}
+
+/**
  * Health check endpoint
  * @returns {Promise<{status: string, agents: object}>}
  */

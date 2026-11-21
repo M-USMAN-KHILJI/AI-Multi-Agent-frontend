@@ -70,6 +70,7 @@ export const Login = () => {
             name: data.name,
             token: data.token,
             avatar: googleUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
+            authProvider: 'google',
           })
           setSuccess('Google authentication successful! Initializing workspace...')
           setTimeout(() => navigate(returnTo, { replace: true }), 600)
@@ -108,6 +109,7 @@ export const Login = () => {
         name: data.name,
         token: data.token,
         avatar: googleUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
+        authProvider: 'google',
       })
 
       setSuccess('Google authentication successful! Initializing workspace...')
@@ -170,7 +172,8 @@ export const Login = () => {
         email: data.email,
         name: data.name,
         token: data.token,
-        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
+        avatar: data.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
+        authProvider: data.auth_provider || 'email',
       })
 
       setSuccess('Authentication successful! Initializing your workspace...')

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { colors, radius, fontSize } from '../Const/display'
 import { Badge } from './Badge'
@@ -16,6 +16,9 @@ import {
   FiChevronRight,
   FiLogOut,
   FiLogIn,
+  FiUser,
+  FiHelpCircle,
+  FiChevronUp,
 } from 'react-icons/fi'
 
 /**
@@ -29,10 +32,23 @@ import {
  */
 export const Sidebar = ({ isOpen, onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const profileMenuRef = useRef(null)
   const location = useLocation()
   const navigate = useNavigate()
   const { chats, activeChatId, setActiveChat, createNewChat, deleteChat } = useChatStore()
   const { user, isAuthenticated, logout } = useAuthStore()
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setProfileMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [])
 
   // Handler for New Chat button
   const handleNewChat = () => {
@@ -256,109 +272,166 @@ export const Sidebar = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Secondary Management Links */}
-          <div className="flex flex-col gap-1 pt-2 border-t border-white/5 shrink-0">
-            <Link
-              to="/settings"
-              onClick={onClose}
-              style={{
-                borderRadius: radius.md,
-                backgroundColor:
-                  location.pathname === '/settings'
-                    ? 'rgba(255, 255, 255, 0.08)'
-                    : 'transparent',
-                color:
-                  location.pathname === '/settings'
-                    ? colors.textPrimary
-                    : colors.textSecondary,
-                fontSize: fontSize.bodySm,
-              }}
-              className={`w-full h-10 flex items-center font-medium hover:bg-white/5 hover:text-white transition-colors overflow-hidden ${
-                isCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5 text-xs justify-start'
-              }`}
-              title="Model & API Settings"
-            >
-              <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                <FiSettings className="w-4 h-4 text-gray-400" />
-              </div>
-              <span
-                className={`whitespace-nowrap transition-all duration-200 overflow-hidden truncate ${
-                  isCollapsed ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[160px]'
-                }`}
-              >
-                Model & API Settings
-              </span>
-            </Link>
-          </div>
         </div>
 
-        {/* Footer Widget: Authenticated User Profile OR Supervisor Architecture Status */}
+        {/* Footer Widget: Authenticated User Profile with Upward Dropdown Menu */}
         {isAuthenticated && user ? (
-          <div
-            style={{
-              backgroundColor: 'rgba(19, 25, 38, 0.85)',
-              border: `1px solid ${colors.borderGlass}`,
-              borderRadius: radius.lg,
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-            }}
-            className={`flex items-center mt-3 shrink-0 overflow-hidden transition-all duration-300 backdrop-blur-xl ${
-              isCollapsed ? 'p-2 justify-center' : 'p-2.5 justify-between gap-2.5'
-            }`}
-          >
-            {/* User Avatar + Name Info */}
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative shrink-0">
-                <img
-                  src={
-                    user.avatar ||
-                    user.photoURL ||
-                    `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || 'User')}`
-                  }
-                  alt={user.name}
-                  referrerPolicy="no-referrer"
-                  className="w-9 h-9 rounded-xl border border-indigo-500/50 object-cover shadow-md shadow-indigo-500/20"
-                />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900 animate-pulse" />
+          <div ref={profileMenuRef} className="relative mt-3 shrink-0">
+            {/* Upward Glassmorphic Popover Dropdown Menu */}
+            {profileMenuOpen && (
+              <div
+                style={{
+                  backgroundColor: 'rgba(15, 20, 32, 0.95)',
+                  border: `1px solid ${colors.borderGlassHover}`,
+                  borderRadius: radius.lg,
+                  boxShadow: '0 -12px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(99, 102, 241, 0.2)',
+                }}
+                className={`absolute bottom-full mb-2 z-50 p-2 flex flex-col gap-1 backdrop-blur-2xl transition-all duration-200 ${
+                  isCollapsed ? 'left-0 w-60' : 'left-0 right-0'
+                }`}
+              >
+                {/* Header in Dropdown: User Avatar + Name + Email */}
+                <div className="flex items-center gap-3 p-2 border-b border-white/5 mb-1">
+                  <img
+                    src={
+                      user.avatar ||
+                      user.photoURL ||
+                      `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || 'User')}`
+                    }
+                    alt={user.name}
+                    referrerPolicy="no-referrer"
+                    className="w-10 h-10 rounded-xl border border-indigo-400/50 object-cover shrink-0"
+                  />
+                  <div className="flex flex-col min-w-0 overflow-hidden">
+                    <span className="text-sm font-semibold text-white truncate">{user.name}</span>
+                    <span className="text-xs text-gray-400 truncate">{user.email}</span>
+                  </div>
+                </div>
+
+                {/* 1. Profile Option Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileMenuOpen(false)
+                    navigate('/profile')
+                    if (onClose) onClose()
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer w-full text-left"
+                >
+                  <FiUser className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span>View Profile</span>
+                </button>
+
+                {/* 2. Settings Option Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileMenuOpen(false)
+                    navigate('/settings')
+                    if (onClose) onClose()
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer w-full text-left"
+                >
+                  <FiSettings className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span>Settings</span>
+                </button>
+
+                {/* 3. Help Option Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileMenuOpen(false)
+                    navigate('/help')
+                    if (onClose) onClose()
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-200 hover:text-white hover:bg-white/10 transition-all cursor-pointer w-full text-left"
+                >
+                  <FiHelpCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Help & Docs</span>
+                </button>
+
+                <div className="h-px bg-white/5 my-0.5" />
+
+                {/* 4. Logout Option Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileMenuOpen(false)
+                    logout()
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all cursor-pointer w-full text-left"
+                >
+                  <FiLogOut className="w-4 h-4 shrink-0" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
+
+            {/* Profile Bar Button that triggers the upward dropdown */}
+            <button
+              type="button"
+              onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+              style={{
+                backgroundColor: profileMenuOpen ? 'rgba(30, 41, 59, 0.95)' : 'rgba(19, 25, 38, 0.85)',
+                border: `1px solid ${profileMenuOpen ? colors.primary : colors.borderGlass}`,
+                borderRadius: radius.lg,
+                boxShadow: profileMenuOpen
+                  ? '0 0 16px rgba(99, 102, 241, 0.35)'
+                  : '0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+              }}
+              className={`flex items-center w-full overflow-hidden transition-all duration-200 backdrop-blur-xl cursor-pointer hover:border-indigo-500/50 ${
+                isCollapsed ? 'p-2 justify-center' : 'p-2.5 justify-between gap-2.5'
+              }`}
+              title="User Profile Menu"
+            >
+              {/* User Avatar + Name Info */}
+              <div className="flex items-center gap-2.5 min-w-0 text-left">
+                <div className="relative shrink-0">
+                  <img
+                    src={
+                      user.avatar ||
+                      user.photoURL ||
+                      `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || 'User')}`
+                    }
+                    alt={user.name}
+                    referrerPolicy="no-referrer"
+                    className="w-9 h-9 rounded-xl border border-indigo-500/50 object-cover shadow-md shadow-indigo-500/20"
+                  />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900 animate-pulse" />
+                </div>
+
+                {!isCollapsed && (
+                  <div className="flex flex-col min-w-0 overflow-hidden">
+                    <span
+                      style={{
+                        color: colors.textPrimary,
+                        fontSize: fontSize.bodySm,
+                      }}
+                      className="font-semibold truncate leading-tight text-white"
+                    >
+                      {user.name}
+                    </span>
+                    <span
+                      style={{
+                        color: colors.textMuted,
+                        fontSize: fontSize.tiny,
+                      }}
+                      className="truncate text-gray-400 leading-tight mt-0.5"
+                    >
+                      {user.email}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {!isCollapsed && (
-                <div className="flex flex-col min-w-0 overflow-hidden">
-                  <span
-                    style={{
-                      color: colors.textPrimary,
-                      fontSize: fontSize.bodySm,
-                    }}
-                    className="font-semibold truncate leading-tight text-white"
-                  >
-                    {user.name}
-                  </span>
-                  <span
-                    style={{
-                      color: colors.textMuted,
-                      fontSize: fontSize.tiny,
-                    }}
-                    className="truncate text-gray-400 leading-tight mt-0.5"
-                  >
-                    {user.email}
-                  </span>
-                </div>
+                <FiChevronUp
+                  className={`w-4 h-4 text-gray-400 transition-transform duration-200 shrink-0 ${
+                    profileMenuOpen ? 'rotate-180 text-indigo-400' : ''
+                  }`}
+                />
               )}
-            </div>
-
-            {/* Logout Action Button */}
-            {!isCollapsed && (
-              <button
-                type="button"
-                onClick={() => logout()}
-                style={{
-                  borderRadius: radius.md,
-                }}
-                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all cursor-pointer shrink-0"
-                title="Sign Out"
-              >
-                <FiLogOut className="w-4 h-4" />
-              </button>
-            )}
+            </button>
           </div>
         ) : (
           <div

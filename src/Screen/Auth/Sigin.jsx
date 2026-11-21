@@ -66,6 +66,7 @@ export const Sigin = () => {
             name: data.name,
             token: data.token,
             avatar: googleUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
+            authProvider: 'google',
           })
           setSuccessMsg('Google registration successful! Taking you to OmniAgent...')
           setTimeout(() => navigate(returnTo, { replace: true }), 600)
@@ -231,7 +232,8 @@ export const Sigin = () => {
         name: data.name,
         email: data.email,
         token: data.token,
-        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
+        avatar: data.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`,
+        authProvider: 'email',
       })
 
       setSuccessMsg('Account created successfully! Taking you to OmniAgent...')

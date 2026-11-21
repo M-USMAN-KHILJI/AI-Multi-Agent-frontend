@@ -4,6 +4,8 @@ import { Navbar, Sidebar, Footer } from '../customComp'
 import { HomePage } from '../Screen/Main/homepage'
 import { ChatScreen } from '../Screen/Main/ChatScreen'
 import { Settings } from '../Screen/Main/settings'
+import { Profile } from '../Screen/Main/Profile'
+import { Help } from '../Screen/Main/help'
 import { Login } from '../Screen/Auth/Login'
 import { Sigin } from '../Screen/Auth/Sigin'
 import { colors } from '../Const/display'
@@ -59,20 +61,24 @@ const AppLayout = () => {
             - On Chat page: overflow-hidden so the text input field stays completely fixed at bottom */}
         <main
           className={`flex-1 ${
-            isChatRoute ? 'overflow-hidden flex flex-col justify-between' : 'overflow-y-auto overflow-x-hidden flex flex-col'
+            isChatRoute
+              ? 'overflow-hidden flex flex-col justify-between'
+              : 'overflow-y-auto overflow-x-hidden flex flex-col justify-between'
           }`}
         >
-          <div className={`${isChatRoute ? 'flex-1 min-h-0 flex flex-col' : 'w-full shrink-0'}`}>
+          <div className={`${isChatRoute ? 'flex-1 min-h-0 flex flex-col' : 'w-full flex-1 flex flex-col'}`}>
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/chat/:chatId" element={<ChatScreen />} />
               <Route path="/chat" element={<ChatScreen />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/help" element={<Help />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
 
-          {/* Footer is placed at the end of the home screen content and will only be seen after scrolling to the bottom */}
+          {/* Footer is placed at the end of the content and stays at the true bottom */}
           {!isChatRoute && <Footer />}
         </main>
       </div>
