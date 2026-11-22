@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import Avatar from 'react-avatar'
 import { colors, radius, fontSize } from '../Const/display'
+import { getFirstAndLastInitials } from '../utils/avatarUtils'
 import { Badge } from './Badge'
 import { useChatStore } from '../store/chatStore'
 import { useAuthStore } from '../store/authStore'
@@ -292,16 +294,15 @@ export const Sidebar = ({ isOpen, onClose }) => {
               >
                 {/* Header in Dropdown: User Avatar + Name + Email */}
                 <div className="flex items-center gap-3 p-2 border-b border-white/5 mb-1">
-                  <img
-                    src={
-                      user.avatar ||
-                      user.photoURL ||
-                      `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || 'User')}`
-                    }
-                    alt={user.name}
-                    referrerPolicy="no-referrer"
-                    className="w-10 h-10 rounded-xl border border-indigo-400/50 object-cover shrink-0"
-                  />
+                  <div className="shrink-0 flex items-center justify-center">
+                    <Avatar
+                      name={user.name || 'User'}
+                      value={getFirstAndLastInitials(user.name)}
+                      size="40"
+                      round="12px"
+                      className="border border-indigo-400/50 object-cover"
+                    />
+                  </div>
                   <div className="flex flex-col min-w-0 overflow-hidden">
                     <span className="text-sm font-semibold text-white truncate">{user.name}</span>
                     <span className="text-xs text-gray-400 truncate">{user.email}</span>
@@ -386,16 +387,13 @@ export const Sidebar = ({ isOpen, onClose }) => {
             >
               {/* User Avatar + Name Info */}
               <div className="flex items-center gap-2.5 min-w-0 text-left">
-                <div className="relative shrink-0">
-                  <img
-                    src={
-                      user.avatar ||
-                      user.photoURL ||
-                      `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || 'User')}`
-                    }
-                    alt={user.name}
-                    referrerPolicy="no-referrer"
-                    className="w-9 h-9 rounded-xl border border-indigo-500/50 object-cover shadow-md shadow-indigo-500/20"
+                <div className="relative shrink-0 flex items-center justify-center">
+                  <Avatar
+                    name={user.name || 'User'}
+                    value={getFirstAndLastInitials(user.name)}
+                    size="36"
+                    round="12px"
+                    className="border border-indigo-500/50 object-cover shadow-md shadow-indigo-500/20"
                   />
                   <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900 animate-pulse" />
                 </div>

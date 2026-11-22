@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Avatar from 'react-avatar'
+import { getFirstAndLastInitials } from '../../utils/avatarUtils'
 import {
   FiUser,
   FiMail,
@@ -154,7 +156,14 @@ export const Profile = () => {
 
       {/* Top Header Card */}
       <div className="profile-header-banner">
-        <img src={avatarSrc} alt={user.name} className="profile-avatar-large" />
+        <div className="profile-avatar-large flex items-center justify-center overflow-hidden shrink-0">
+          <Avatar
+            name={user.name || 'User'}
+            value={getFirstAndLastInitials(user.name)}
+            size="84"
+            round={true}
+          />
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap mb-1.5">
             <h1 className="text-2xl font-bold text-white tracking-tight">{user.name}</h1>

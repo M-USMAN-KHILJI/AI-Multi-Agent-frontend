@@ -283,10 +283,6 @@ export const Login = () => {
                 <Link
                   to="/forgot-password"
                   className="auth-link text-xs"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    alert('Password reset instructions will be sent to your email.')
-                  }}
                 >
                   Forgot password?
                 </Link>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import Avatar from 'react-avatar'
+import { getFirstAndLastInitials } from '../../utils/avatarUtils'
 import {
   colors,
   fontSize,
@@ -577,16 +579,15 @@ export const Settings = () => {
                 <div className="flex flex-col gap-5">
                   {/* User Profile Card */}
                   <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-950/40 border border-white/5">
-                    <img
-                      src={
-                        user.avatar ||
-                        user.photoURL ||
-                        `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || 'User')}`
-                      }
-                      alt={user.name}
-                      referrerPolicy="no-referrer"
-                      className="w-16 h-16 rounded-2xl border-2 border-indigo-500/60 object-cover shadow-lg shadow-indigo-500/20"
-                    />
+                    <div className="shrink-0 flex items-center justify-center">
+                      <Avatar
+                        name={user.name || 'User'}
+                        value={getFirstAndLastInitials(user.name)}
+                        size="64"
+                        round="16px"
+                        className="border-2 border-indigo-500/60 object-cover shadow-lg shadow-indigo-500/20"
+                      />
+                    </div>
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
                         <h3 className="text-base font-bold text-white">{user.name}</h3>

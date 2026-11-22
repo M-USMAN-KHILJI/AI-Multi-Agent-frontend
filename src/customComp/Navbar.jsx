@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import Avatar from 'react-avatar'
 import { colors, height, radius, fontSize } from '../Const/display'
+import { getFirstAndLastInitials } from '../utils/avatarUtils'
 import { useAuthStore } from '../store/authStore'
 import {
   FiCpu,
@@ -131,16 +133,15 @@ export const Navbar = ({ onToggleSidebar }) => {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-slate-750 border border-white/10 hover:border-indigo-500/40 transition-all cursor-pointer text-xs"
             >
-              <img
-                src={
-                  user.avatar ||
-                  user.photoURL ||
-                  `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || 'User')}`
-                }
-                alt={user.name}
-                referrerPolicy="no-referrer"
-                className="w-6 h-6 rounded-full border border-indigo-400/50 object-cover shrink-0"
-              />
+              <div className="shrink-0 flex items-center justify-center">
+                <Avatar
+                  name={user.name || 'User'}
+                  value={getFirstAndLastInitials(user.name)}
+                  size="24"
+                  round={true}
+                  className="border border-indigo-400/50 object-cover"
+                />
+              </div>
               <span className="text-gray-200 font-medium hidden sm:inline max-w-[120px] truncate">
                 {user.name}
               </span>
@@ -164,16 +165,15 @@ export const Navbar = ({ onToggleSidebar }) => {
               >
                 {/* User Info Header */}
                 <div className="flex items-center gap-3 pb-3 border-b border-white/10">
-                  <img
-                    src={
-                      user.avatar ||
-                      user.photoURL ||
-                      `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name || 'User')}`
-                    }
-                    alt={user.name}
-                    referrerPolicy="no-referrer"
-                    className="w-10 h-10 rounded-full border-2 border-indigo-500/60 object-cover shrink-0"
-                  />
+                  <div className="shrink-0 flex items-center justify-center">
+                    <Avatar
+                      name={user.name || 'User'}
+                      value={getFirstAndLastInitials(user.name)}
+                      size="40"
+                      round={true}
+                      className="border-2 border-indigo-500/60 object-cover"
+                    />
+                  </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-sm font-bold text-white truncate">
                       {user.name}

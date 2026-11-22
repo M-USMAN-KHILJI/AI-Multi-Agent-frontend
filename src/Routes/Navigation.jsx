@@ -8,6 +8,9 @@ import { Profile } from '../Screen/Main/Profile'
 import { Help } from '../Screen/Main/help'
 import { Login } from '../Screen/Auth/Login'
 import { Sigin } from '../Screen/Auth/Sigin'
+import { Forget } from '../Screen/Auth/Forget'
+import { VertifatonCode } from '../Screen/Auth/VertifatonCode'
+import { ChangePassword } from '../Screen/Auth/ChangePassword'
 import { colors } from '../Const/display'
 
 /**
@@ -21,7 +24,17 @@ const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   const isChatRoute = location.pathname.startsWith('/chat')
-  const isAuthRoute = location.pathname === '/login' || location.pathname === '/signin'
+  const authPaths = [
+    '/login',
+    '/signin',
+    '/forget',
+    '/forgot-password',
+    '/verify-code',
+    '/vertifaton-code',
+    '/change-password',
+    '/reset-password',
+  ]
+  const isAuthRoute = authPaths.includes(location.pathname)
 
   // Standalone layout for Authentication Pages (No Navbar/Sidebar/Footer distractions)
   if (isAuthRoute) {
@@ -29,6 +42,12 @@ const AppLayout = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signin" element={<Sigin />} />
+        <Route path="/forget" element={<Forget />} />
+        <Route path="/forgot-password" element={<Forget />} />
+        <Route path="/verify-code" element={<VertifatonCode />} />
+        <Route path="/vertifaton-code" element={<VertifatonCode />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/reset-password" element={<ChangePassword />} />
       </Routes>
     )
   }
