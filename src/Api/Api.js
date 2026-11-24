@@ -1,9 +1,11 @@
 import axios from 'axios'
 
-// Railway Deployed Backend URL (fallback to VITE_API_URL if configured)
+// Production Backend URL (Railway) with fallback to VITE_API_URL or default
+export const PRODUCTION_BACKEND_URL = 'https://ai-multi-agent-backend-production.up.railway.app'
+
 export const BACKEND_URL =
   import.meta.env.VITE_API_URL ||
-  'http://127.0.0.1:8000'
+  PRODUCTION_BACKEND_URL
 
 // Base Axios instance configured for OmniAgent Backend
 const apiClient = axios.create({
@@ -304,6 +306,62 @@ export const getUserDetails = async (userId) => {
     throw { message: error.message || 'Failed to fetch user details.' }
   }
 }
+
+/**
+ * Request a 6-digit OTP code to reset password via Gmail SMTP
+ * @param {string} email
+ */
+export const requestForgotPasswordOTP = async (email) => {
+  try {
+    const response = await apiClient.post('/auth/forgot-password', { email })
+    return response.data
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw error.response.data.detail
+    }
+    throw { message: error.message || 'Failed to send verification code.' }
+  }
+}
+
+/**
+ * Verify 6-digit OTP code
+ * @param {string} email
+ * @param {string} otp
+ */
+export const verifyOTPCode = async (email, otp) => {
+  try {
+    const response = await apiClient.post('/auth/verify-otp', { email, otp })
+    return response.data
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw error.response.data.detail
+    }
+    throw { message: error.message || 'Failed to verify code.' }
+  }
+}
+
+/**
+ * Reset Password with verified OTP
+ * @param {string} email
+ * @param {string} otp
+ * @param {string} newPassword
+ */
+export const resetPasswordWithOTP = async (email, otp, newPassword) => {
+  try {
+    const response = await apiClient.post('/auth/reset-password', {
+      email,
+      otp,
+      new_password: newPassword,
+    })
+    return response.data
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw error.response.data.detail
+    }
+    throw { message: error.message || 'Failed to reset password.' }
+  }
+}
+
 
 /**
  * Health check endpoint

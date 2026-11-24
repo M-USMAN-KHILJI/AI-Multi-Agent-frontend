@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import OtpInput from 'react-otp-input'
 import {
@@ -8,7 +8,9 @@ import {
   FiAlertCircle,
   FiCheckCircle,
   FiRotateCw,
+  FiClock,
 } from 'react-icons/fi'
+import { verifyOTPCode, requestForgotPasswordOTP } from '../../Api/Api'
 import '../../Style/login.css'
 import '../../Style/Forget.css'
 import '../../Style/VerficationCode.css'
@@ -16,7 +18,10 @@ import '../../Style/VerficationCode.css'
 /**
  * Verification Code (OTP) Screen - OmniAgent AI Platform
  * Step 2: User enters the 6-digit OTP code sent to their email.
- * Built using react-otp-input with customized cyberpunk glassmorphism inputs.
+ * Includes:
+ * - 60-second countdown timer
+ * - Resend OTP button appearing only after countdown reaches 0
+ * - Real backend OTP verification
  */
 export const VertifatonCode = () => {
   const navigate = useNavigate()
@@ -26,9 +31,29 @@ export const VertifatonCode = () => {
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
   const [resendStatus, setResendStatus] = useState('')
 
-  const handleVerify = (e) => {
+  // 60-second countdown timer
+  const [timer, setTimer] = useState(60)
+
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prev) => prev - 1)
+      }, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [timer])
+
+  // Redirect if no email state present
+  useEffect(() => {
+    if (!userEmail) {
+      navigate('/forgot-password')
+    }
+  }, [userEmail, navigate])
+
+  const handleVerify = async (e) => {
     e.preventDefault()
     setError('')
 
@@ -38,20 +63,35 @@ export const VertifatonCode = () => {
     }
 
     setLoading(true)
-
-    // Verify OTP logic (placeholder ready for backend verification endpoint)
-    setTimeout(() => {
-      setLoading(false)
-      // Pass both verified email and token/otp to Step 3
+    try {
+      await verifyOTPCode(userEmail, otp)
+      // Navigate to step 3 passing email and verified OTP code
       navigate('/change-password', {
         state: { email: userEmail, code: otp },
       })
-    }, 600)
+    } catch (err) {
+      const msg = typeof err === 'string' ? err : err.message || 'Wrong verification code. Please enter the correct OTP.'
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleResend = () => {
-    setResendStatus('A new 6-digit code has been dispatched!')
-    setTimeout(() => setResendStatus(''), 4000)
+  const handleResend = async () => {
+    setError('')
+    setResending(true)
+    try {
+      await requestForgotPasswordOTP(userEmail)
+      setOtp('')
+      setTimer(60)
+      setResendStatus('A fresh 6-digit verification code has been sent to your email!')
+      setTimeout(() => setResendStatus(''), 5000)
+    } catch (err) {
+      const msg = typeof err === 'string' ? err : err.message || 'Failed to resend code.'
+      setError(msg)
+    } finally {
+      setResending(false)
+    }
   }
 
   return (
@@ -136,17 +176,27 @@ export const VertifatonCode = () => {
           </button>
         </form>
 
-        {/* Resend Code Action */}
-        <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-gray-400">
-          <span>Didn't receive code?</span>
-          <button
-            type="button"
-            onClick={handleResend}
-            className="text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer transition-colors flex items-center gap-1"
-          >
-            <FiRotateCw className="w-3 h-3" />
-            <span>Resend</span>
-          </button>
+        {/* Resend Code Action with 1-Minute Countdown */}
+        <div className="mt-5 flex flex-col items-center justify-center gap-2 text-xs">
+          {timer > 0 ? (
+            <div className="flex items-center gap-1.5 text-gray-400">
+              <FiClock className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Resend code in <strong className="text-white font-mono">{timer}s</strong></span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-gray-400">
+              <span>Didn't receive code?</span>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer transition-colors flex items-center gap-1 disabled:opacity-50"
+              >
+                <FiRotateCw className={`w-3 h-3 ${resending ? 'animate-spin' : ''}`} />
+                <span>{resending ? 'Sending...' : 'Resend OTP'}</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Back Link */}

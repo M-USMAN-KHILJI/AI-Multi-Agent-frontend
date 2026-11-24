@@ -9,6 +9,7 @@ import {
   FiCheckCircle,
   FiShield,
 } from 'react-icons/fi'
+import { requestForgotPasswordOTP } from '../../Api/Api'
 import '../../Style/login.css'
 import '../../Style/Forget.css'
 
@@ -22,7 +23,7 @@ export const Forget = () => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
@@ -38,13 +39,15 @@ export const Forget = () => {
     }
 
     setLoading(true)
-
-    // Simulate OTP trigger step (ready for SMTP integration)
-    setTimeout(() => {
-      setLoading(false)
-      // Navigate to OTP verification page passing the email in route state
+    try {
+      await requestForgotPasswordOTP(trimmed)
       navigate('/verify-code', { state: { email: trimmed } })
-    }, 600)
+    } catch (err) {
+      const msg = typeof err === 'string' ? err : err.message || 'Failed to dispatch verification code.'
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

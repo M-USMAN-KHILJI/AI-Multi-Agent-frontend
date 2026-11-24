@@ -11,6 +11,7 @@ import {
   FiArrowLeft,
   FiShield,
 } from 'react-icons/fi'
+import { resetPasswordWithOTP } from '../../Api/Api'
 import '../../Style/login.css'
 import '../../Style/Forget.css'
 import '../../Style/ChangePassword.css'
@@ -33,7 +34,14 @@ export const ChangePassword = () => {
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  // Redirect if missing email or code
+  React.useEffect(() => {
+    if (!userEmail || !verificationCode) {
+      navigate('/forgot-password')
+    }
+  }, [userEmail, verificationCode, navigate])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setSuccess('')
@@ -54,17 +62,20 @@ export const ChangePassword = () => {
     }
 
     setLoading(true)
-
-    // Simulate password update (ready for backend endpoint call)
-    setTimeout(() => {
-      setLoading(false)
+    try {
+      await resetPasswordWithOTP(userEmail, verificationCode, newPassword)
       setSuccess('Your password has been successfully updated! Redirecting to login...')
       setTimeout(() => {
         navigate('/login', {
           state: { message: 'Password updated successfully! Please sign in with your new password.' },
         })
       }, 1500)
-    }, 700)
+    } catch (err) {
+      const msg = typeof err === 'string' ? err : err.message || 'Failed to update password.'
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
