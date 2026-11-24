@@ -1,11 +1,9 @@
 import axios from 'axios'
 
-// Production Backend URL (Railway) with fallback to VITE_API_URL or default
-export const PRODUCTION_BACKEND_URL = 'https://ai-multi-agent-backend-production.up.railway.app'
-
+// Import Backend URL directly from environment variables (.env)
 export const BACKEND_URL =
-  import.meta.env.VITE_API_URL ||
-  PRODUCTION_BACKEND_URL
+  import.meta.env.VITE_BACKEND_API_URL ||
+  import.meta.env.VITE_API_URL
 
 // Base Axios instance configured for OmniAgent Backend
 const apiClient = axios.create({
